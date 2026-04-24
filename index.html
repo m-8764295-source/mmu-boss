@@ -1,1025 +1,1474 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StaffPortal — Employee System</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-
-  <!-- Firebase SDK (optional — remove if not using Firebase) -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --font: 'Plus Jakarta Sans', sans-serif;
-      --green-50: #f0faf4;
-      --green-100: #d1f0dc;
-      --green-200: #a3e2ba;
-      --green-500: #3daa6b;
-      --green-600: #2d8a56;
-      --green-700: #1f6940;
-      --gray-50: #f9f9f8;
-      --gray-100: #f2f2f0;
-      --gray-200: #e4e4e0;
-      --gray-300: #c8c8c2;
-      --gray-500: #7a7a74;
-      --gray-700: #3a3a36;
-      --gray-900: #1a1a18;
-      --white: #ffffff;
-      --red-50: #fef2f2;
-      --red-500: #ef4444;
-      --red-600: #dc2626;
-      --amber-50: #fffbeb;
-      --amber-500: #f59e0b;
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 16px;
-      --radius-xl: 24px;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
-    }
-
-    body {
-      font-family: var(--font);
-      background: var(--gray-50);
-      min-height: 100vh;
-      color: var(--gray-900);
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .screen { display: none; }
-    .screen.active { display: block; }
-
-    /* ─── AUTH ─── */
-    .auth-wrap {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      background: linear-gradient(135deg, var(--green-50) 0%, var(--white) 60%, var(--gray-100) 100%);
-    }
-
-    .auth-card {
-      background: var(--white);
-      border: 1px solid var(--gray-200);
-      border-radius: var(--radius-xl);
-      padding: 40px 36px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: var(--shadow-md);
-    }
-
-    .auth-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; }
-
-    .logo-mark {
-      width: 36px; height: 36px;
-      background: var(--green-500);
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    .logo-mark svg { width: 20px; height: 20px; }
-    .logo-text { font-size: 17px; font-weight: 700; color: var(--gray-900); letter-spacing: -0.3px; }
-    .logo-sub { font-size: 11px; color: var(--gray-500); font-weight: 400; letter-spacing: 0.5px; text-transform: uppercase; }
-
-    .auth-title { font-size: 22px; font-weight: 700; color: var(--gray-900); letter-spacing: -0.4px; margin-bottom: 6px; }
-    .auth-subtitle { font-size: 14px; color: var(--gray-500); margin-bottom: 28px; line-height: 1.5; }
-
-    .field-group { margin-bottom: 18px; }
-
-    .field-label {
-      display: block;
-      font-size: 13px; font-weight: 600;
-      color: var(--gray-700);
-      margin-bottom: 7px;
-      letter-spacing: 0.1px;
-    }
-
-    .field-input {
-      width: 100%; height: 44px;
-      border: 1.5px solid var(--gray-200);
-      border-radius: var(--radius-md);
-      padding: 0 14px;
-      font-size: 14px; font-family: var(--font);
-      color: var(--gray-900); background: var(--white);
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      -webkit-appearance: none;
-    }
-
-    .field-input:focus {
-      border-color: var(--green-500);
-      box-shadow: 0 0 0 3px rgba(61,170,107,0.12);
-    }
-
-    .field-input::placeholder { color: var(--gray-300); }
-
-    .field-select {
-      width: 100%; height: 44px;
-      border: 1.5px solid var(--gray-200);
-      border-radius: var(--radius-md);
-      padding: 0 14px; padding-right: 36px;
-      font-size: 14px; font-family: var(--font);
-      color: var(--gray-900); background: var(--white);
-      outline: none; cursor: pointer;
-      transition: border-color 0.15s;
-      -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7a74' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-    }
-
-    .field-select:focus {
-      border-color: var(--green-500);
-      box-shadow: 0 0 0 3px rgba(61,170,107,0.12);
-    }
-
-    .btn-primary {
-      width: 100%; height: 46px;
-      background: var(--green-500); color: white;
-      border: none; border-radius: var(--radius-md);
-      font-size: 15px; font-weight: 600; font-family: var(--font);
-      cursor: pointer; letter-spacing: 0.1px; margin-top: 8px;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: background 0.15s, transform 0.1s;
-    }
-
-    .btn-primary:hover { background: var(--green-600); }
-    .btn-primary:active { transform: scale(0.99); }
-    .btn-primary:disabled { background: var(--gray-300); cursor: not-allowed; transform: none; }
-
-    .auth-switch { text-align: center; margin-top: 20px; font-size: 13px; color: var(--gray-500); }
-    .auth-switch a { color: var(--green-600); font-weight: 600; cursor: pointer; text-decoration: none; }
-    .auth-switch a:hover { text-decoration: underline; }
-
-    /* ─── ALERTS ─── */
-    .alert {
-      padding: 12px 14px;
-      border-radius: var(--radius-sm);
-      font-size: 13px; font-weight: 500;
-      margin-bottom: 18px;
-      display: none; align-items: center; gap: 8px;
-      line-height: 1.4;
-    }
-
-    .alert.show { display: flex; }
-    .alert-error   { background: var(--red-50);   color: var(--red-600);  border: 1px solid #fecaca; }
-    .alert-success { background: var(--green-50);  color: var(--green-700); border: 1px solid var(--green-200); }
-    .alert-warning { background: var(--amber-50);  color: #92400e;         border: 1px solid #fde68a; }
-    .alert-info    { background: #eff6ff;           color: #1e40af;         border: 1px solid #bfdbfe; }
-
-    /* ─── PENDING ─── */
-    .pending-wrap {
-      min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      padding: 24px; background: var(--gray-50);
-    }
-
-    .pending-card {
-      background: var(--white); border: 1px solid var(--gray-200);
-      border-radius: var(--radius-xl); padding: 48px 40px;
-      max-width: 440px; width: 100%; text-align: center;
-      box-shadow: var(--shadow-md);
-    }
-
-    .pending-icon {
-      width: 72px; height: 72px;
-      background: var(--amber-50); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 24px; border: 2px solid #fde68a;
-    }
-
-    .pending-title { font-size: 20px; font-weight: 700; color: var(--gray-900); margin-bottom: 10px; letter-spacing: -0.3px; }
-    .pending-desc  { font-size: 14px; color: var(--gray-500); line-height: 1.6; margin-bottom: 28px; }
-
-    .btn-secondary {
-      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-      height: 40px; padding: 0 20px;
-      background: transparent; border: 1.5px solid var(--gray-200);
-      border-radius: var(--radius-md);
-      font-size: 14px; font-weight: 600; font-family: var(--font);
-      color: var(--gray-700); cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .btn-secondary:hover { border-color: var(--gray-300); background: var(--gray-50); }
-
-    /* ─── TOPBAR ─── */
-    .topbar {
-      background: var(--white); border-bottom: 1px solid var(--gray-200);
-      padding: 0 24px; height: 60px;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 100;
-    }
-
-    .topbar-left { display: flex; align-items: center; gap: 12px; }
-    .topbar-logo { display: flex; align-items: center; gap: 8px; }
-
-    .topbar-logo-mark {
-      width: 30px; height: 30px; background: var(--green-500);
-      border-radius: 8px; display: flex; align-items: center; justify-content: center;
-    }
-
-    .topbar-brand { font-size: 15px; font-weight: 700; color: var(--gray-900); letter-spacing: -0.2px; }
-    .topbar-right { display: flex; align-items: center; gap: 12px; }
-
-    .user-badge {
-      display: flex; align-items: center; gap: 8px;
-      padding: 6px 12px; background: var(--gray-100); border-radius: 100px;
-    }
-
-    .user-avatar {
-      width: 26px; height: 26px; background: var(--green-100); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; color: var(--green-700);
-    }
-
-    .user-name { font-size: 13px; font-weight: 600; color: var(--gray-700); }
-
-    .btn-logout {
-      display: flex; align-items: center; gap: 6px;
-      padding: 6px 12px; background: transparent;
-      border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
-      font-size: 13px; font-weight: 600; font-family: var(--font);
-      color: var(--gray-500); cursor: pointer; transition: all 0.15s;
-    }
-
-    .btn-logout:hover { border-color: var(--gray-300); color: var(--gray-700); background: var(--gray-50); }
-
-    /* ─── DASHBOARD ─── */
-    .dashboard-content { padding: 32px 24px; max-width: 800px; margin: 0 auto; }
-
-    .greeting-label {
-      font-size: 12px; font-weight: 600; letter-spacing: 0.8px;
-      text-transform: uppercase; color: var(--green-500); margin-bottom: 6px;
-    }
-
-    .greeting-title { font-size: 26px; font-weight: 700; color: var(--gray-900); letter-spacing: -0.5px; margin-bottom: 6px; }
-    .greeting-sub   { font-size: 14px; color: var(--gray-500); line-height: 1.5; margin-bottom: 32px; }
-
-    .services-label {
-      font-size: 12px; font-weight: 700; letter-spacing: 0.8px;
-      text-transform: uppercase; color: var(--gray-500); margin-bottom: 16px;
-    }
-
-    .services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-
-    .service-card {
-      background: var(--white); border: 1.5px solid var(--gray-200);
-      border-radius: var(--radius-lg); padding: 28px 24px;
-      cursor: pointer; position: relative; overflow: hidden;
-      transition: all 0.2s;
-    }
-
-    .service-card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0;
-      height: 3px; background: var(--green-500); opacity: 0; transition: opacity 0.2s;
-    }
-
-    .service-card:hover { border-color: var(--green-200); box-shadow: 0 8px 24px rgba(61,170,107,0.10); transform: translateY(-2px); }
-    .service-card:hover::before { opacity: 1; }
-
-    .service-icon {
-      width: 48px; height: 48px; background: var(--green-50);
-      border-radius: var(--radius-sm); border: 1px solid var(--green-100);
-      display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
-    }
-
-    .service-icon svg { width: 24px; height: 24px; }
-    .service-name { font-size: 16px; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; letter-spacing: -0.2px; }
-    .service-desc { font-size: 13px; color: var(--gray-500); line-height: 1.5; }
-
-    .service-arrow { position: absolute; top: 24px; right: 20px; opacity: 0; color: var(--green-500); transition: opacity 0.2s, transform 0.2s; }
-    .service-card:hover .service-arrow { opacity: 1; transform: translate(2px,-2px); }
-
-    /* ─── FORM ─── */
-    .form-content { padding: 28px 24px; max-width: 600px; margin: 0 auto; }
-
-    .form-back {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 13px; font-weight: 600; color: var(--gray-500);
-      cursor: pointer; margin-bottom: 24px; padding: 6px 0;
-      border: none; background: none; font-family: var(--font); transition: color 0.15s;
-    }
-
-    .form-back:hover { color: var(--gray-900); }
-
-    .form-card {
-      background: var(--white); border: 1px solid var(--gray-200);
-      border-radius: var(--radius-xl); padding: 36px 32px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .form-icon {
-      width: 52px; height: 52px; background: var(--green-50);
-      border-radius: var(--radius-md); border: 1px solid var(--green-100);
-      display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
-    }
-
-    .form-icon svg { width: 26px; height: 26px; }
-    .form-title    { font-size: 20px; font-weight: 700; color: var(--gray-900); letter-spacing: -0.3px; margin-bottom: 4px; }
-    .form-subtitle { font-size: 13px; color: var(--gray-500); margin-bottom: 28px; }
-
-    .optional-tag {
-      font-size: 11px; font-weight: 500; color: var(--gray-300);
-      background: var(--gray-100); padding: 2px 7px; border-radius: 100px;
-      margin-left: 6px; letter-spacing: 0.3px;
-    }
-
-    .req-star { color: var(--green-500); margin-left: 2px; font-size: 12px; }
-
-    .form-actions { margin-top: 28px; }
-
-    /* ─── SPINNER ─── */
-    .spinner {
-      width: 18px; height: 18px;
-      border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
-      border-radius: 50%; animation: spin 0.7s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ─── SUCCESS ─── */
-    .success-state { text-align: center; padding: 24px 0; display: none; }
-    .success-state.show { display: block; }
-
-    .success-circle {
-      width: 68px; height: 68px; background: var(--green-50);
-      border: 2px solid var(--green-200); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 16px;
-    }
-
-    .success-title { font-size: 18px; font-weight: 700; color: var(--gray-900); margin-bottom: 8px; }
-    .success-desc  { font-size: 14px; color: var(--gray-500); line-height: 1.5; margin-bottom: 24px; }
-
-    .btn-ghost {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 10px 20px; background: var(--gray-100); border: none;
-      border-radius: var(--radius-md);
-      font-size: 14px; font-weight: 600; font-family: var(--font);
-      color: var(--gray-700); cursor: pointer; transition: all 0.15s;
-    }
-
-    .btn-ghost:hover { background: var(--gray-200); }
-
-    /* ─── RESPONSIVE ─── */
-    @media (max-width: 480px) {
-      .auth-card { padding: 28px 20px; }
-      .services-grid { grid-template-columns: 1fr; }
-      .form-card { padding: 24px 20px; }
-      .dashboard-content, .form-content { padding: 20px 16px; }
-      .topbar { padding: 0 16px; }
-      .user-name { display: none; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soy & Oden — Boss Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0F0E0C;
+  --bg2:#161410;
+  --bg3:#1E1B17;
+  --bg4:#252118;
+  --card:#1A1714;
+  --border:#2A2520;
+  --border2:#363028;
+  --matcha:#7A9E5A;
+  --matcha2:#9ABF72;
+  --matcha-dim:#3D5030;
+  --matcha-glow:rgba(122,158,90,0.15);
+  --milo:#C49A6C;
+  --milo-dim:#6B4E2A;
+  --cream:#F5EDE0;
+  --cream2:#D4C4B0;
+  --text:#EDE8E0;
+  --text2:#A09080;
+  --text3:#6B5D50;
+  --red:#E8654A;
+  --red-dim:#5C2A1E;
+  --blue:#5B8FA6;
+  --blue-dim:#1E3A47;
+  --amber:#D4A853;
+  --amber-dim:#5C3F10;
+  --shadow:0 4px 32px rgba(0,0,0,0.4);
+  --r:14px;
+  --r2:10px;
+}
+
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── LOGIN ── */
+#login-screen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:radial-gradient(ellipse at 30% 40%,rgba(122,158,90,0.08) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 80%,rgba(196,154,108,0.06) 0%,transparent 50%),
+             var(--bg);
+}
+
+.login-card{
+  width:360px;
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:24px;
+  padding:40px 36px;
+  box-shadow:var(--shadow);
+  animation:fadeUp .5s ease;
+}
+
+.login-logo{
+  text-align:center;
+  margin-bottom:28px;
+}
+
+.login-logo .brand{
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--matcha);
+  margin-bottom:6px;
+}
+
+.login-logo .title{
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  font-size:28px;
+  color:var(--cream);
+}
+
+.login-logo .sub{
+  font-size:11px;
+  color:var(--text3);
+  margin-top:4px;
+  font-family:'DM Mono',monospace;
+  letter-spacing:.06em;
+}
+
+.field{
+  margin-bottom:14px;
+}
+
+.field label{
+  display:block;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text2);
+  margin-bottom:6px;
+}
+
+.field input{
+  width:100%;
+  background:var(--bg3);
+  border:1.5px solid var(--border2);
+  border-radius:var(--r2);
+  padding:13px 16px;
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  color:var(--text);
+  outline:none;
+  transition:border-color .2s;
+}
+
+.field input:focus{border-color:var(--matcha);}
+.field input::placeholder{color:var(--text3);}
+
+.login-btn{
+  width:100%;
+  background:var(--matcha);
+  color:#fff;
+  border:none;
+  border-radius:var(--r2);
+  padding:15px;
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  margin-top:6px;
+  transition:background .15s,transform .15s;
+  box-shadow:0 6px 24px rgba(122,158,90,0.3);
+}
+.login-btn:hover{background:var(--matcha2);}
+.login-btn:active{transform:scale(.98);}
+
+.login-err{
+  color:var(--red);
+  font-size:12px;
+  text-align:center;
+  margin-top:10px;
+  display:none;
+}
+
+/* ── DASHBOARD ── */
+#dashboard{display:none;}
+
+/* Sidebar */
+.layout{display:flex;min-height:100vh;}
+
+.sidebar{
+  width:220px;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  padding:24px 0;
+  position:fixed;
+  top:0;left:0;bottom:0;
+  z-index:100;
+}
+
+.sidebar-brand{
+  padding:0 20px 24px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:16px;
+}
+
+.sidebar-brand .s-name{
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  font-size:20px;
+  color:var(--cream);
+}
+
+.sidebar-brand .s-role{
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--matcha);
+  font-family:'DM Mono',monospace;
+}
+
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 20px;
+  cursor:pointer;
+  border-radius:0;
+  transition:background .15s;
+  font-size:13px;
+  font-weight:500;
+  color:var(--text2);
+  border-left:2px solid transparent;
+  margin:1px 0;
+  position:relative;
+}
+
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+
+.nav-item.active{
+  background:var(--bg3);
+  color:var(--matcha);
+  border-left-color:var(--matcha);
+}
+
+.nav-icon{font-size:16px;width:20px;text-align:center;}
+
+.nav-badge{
+  position:absolute;
+  right:14px;
+  background:var(--red);
+  color:#fff;
+  font-size:9px;
+  font-weight:700;
+  padding:2px 6px;
+  border-radius:100px;
+  font-family:'DM Mono',monospace;
+}
+
+.sidebar-bottom{
+  margin-top:auto;
+  padding:16px 20px 0;
+  border-top:1px solid var(--border);
+}
+
+.logout-btn{
+  width:100%;
+  background:transparent;
+  border:1px solid var(--border2);
+  border-radius:var(--r2);
+  padding:9px;
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  color:var(--text2);
+  cursor:pointer;
+  transition:all .15s;
+}
+.logout-btn:hover{border-color:var(--red);color:var(--red);}
+
+/* Main content */
+.main{
+  margin-left:220px;
+  flex:1;
+  padding:28px 32px;
+  min-height:100vh;
+}
+
+/* Topbar */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:28px;
+}
+
+.topbar-title{
+  font-size:22px;
+  font-weight:700;
+  color:var(--cream);
+}
+
+.topbar-title span{
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  color:var(--matcha);
+  font-weight:400;
+}
+
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.live-pill{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:100px;
+  padding:6px 14px;
+  font-size:12px;
+  font-weight:600;
+  color:var(--matcha);
+  font-family:'DM Mono',monospace;
+}
+
+.live-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--matcha);
+  animation:pulse 2s infinite;
+}
+
+.time-display{
+  font-family:'DM Mono',monospace;
+  font-size:13px;
+  color:var(--text2);
+}
+
+/* Stat cards */
+.stats-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin-bottom:28px;
+}
+
+.stat-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:18px 20px;
+  animation:fadeUp .4s ease both;
+}
+
+.stat-label{
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:8px;
+  font-family:'DM Mono',monospace;
+}
+
+.stat-val{
+  font-size:28px;
+  font-weight:700;
+  color:var(--cream);
+  line-height:1;
+  margin-bottom:4px;
+}
+
+.stat-sub{
+  font-size:11px;
+  color:var(--text2);
+}
+
+.stat-card.green .stat-val{color:var(--matcha);}
+.stat-card.amber .stat-val{color:var(--amber);}
+.stat-card.red .stat-val{color:var(--red);}
+.stat-card.blue .stat-val{color:var(--blue);}
+
+/* Tabs */
+.tabs{
+  display:flex;
+  gap:4px;
+  margin-bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  padding:4px;
+  width:fit-content;
+}
+
+.tab{
+  padding:8px 18px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .15s;
+  color:var(--text2);
+  position:relative;
+}
+
+.tab.active{
+  background:var(--bg4);
+  color:var(--matcha);
+}
+
+.tab .t-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:16px;height:16px;
+  border-radius:50%;
+  background:var(--red);
+  color:#fff;
+  font-size:9px;
+  font-weight:700;
+  margin-left:5px;
+  vertical-align:middle;
+}
+
+/* Orders */
+.orders-grid{
+  display:grid;
+  gap:12px;
+}
+
+.order-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:20px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:16px;
+  align-items:start;
+  animation:fadeUp .3s ease both;
+  transition:border-color .2s;
+}
+
+.order-card:hover{border-color:var(--border2);}
+
+.order-card.new{border-left:3px solid var(--red);}
+.order-card.preparing{border-left:3px solid var(--amber);}
+.order-card.ready{border-left:3px solid var(--matcha);}
+.order-card.delivering{border-left:3px solid var(--blue);}
+.order-card.done{border-left:3px solid var(--text3);opacity:.65;}
+
+.order-num{
+  font-family:'DM Mono',monospace;
+  font-size:11px;
+  font-weight:500;
+  color:var(--text3);
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:6px 10px;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.order-num .num{
+  font-size:18px;
+  font-weight:700;
+  color:var(--cream);
+  display:block;
+  line-height:1.2;
+}
+
+.order-info{}
+
+.order-top{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:6px;
+  flex-wrap:wrap;
+}
+
+.order-name{
+  font-size:15px;
+  font-weight:700;
+  color:var(--cream);
+}
+
+.order-type-badge{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.06em;
+  padding:3px 8px;
+  border-radius:100px;
+  font-family:'DM Mono',monospace;
+}
+
+.badge-pickup{background:var(--matcha-dim);color:var(--matcha2);}
+.badge-delivery{background:var(--blue-dim);color:var(--blue);}
+
+.order-status-badge{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.05em;
+  padding:3px 10px;
+  border-radius:100px;
+  font-family:'DM Mono',monospace;
+}
+
+.status-new{background:var(--red-dim);color:var(--red);}
+.status-preparing{background:var(--amber-dim);color:var(--amber);}
+.status-ready{background:var(--matcha-dim);color:var(--matcha2);}
+.status-delivering{background:var(--blue-dim);color:var(--blue);}
+.status-done{background:var(--bg3);color:var(--text3);}
+
+.order-items{
+  font-size:12px;
+  color:var(--text2);
+  line-height:1.7;
+  margin-bottom:8px;
+}
+
+.order-items span{color:var(--text);font-weight:500;}
+
+.order-meta{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  font-size:11px;
+  color:var(--text3);
+  font-family:'DM Mono',monospace;
+}
+
+.order-meta .phone{color:var(--milo);}
+.order-meta .time-ago{color:var(--text3);}
+
+.order-actions{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  align-items:flex-end;
+}
+
+.order-total{
+  font-size:18px;
+  font-weight:700;
+  color:var(--matcha);
+  font-family:'DM Mono',monospace;
+  text-align:right;
+}
+
+.action-btn{
+  border:none;
+  border-radius:var(--r2);
+  padding:9px 16px;
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .15s;
+  white-space:nowrap;
+}
+
+.btn-accept{background:var(--matcha);color:#fff;box-shadow:0 4px 16px rgba(122,158,90,0.3);}
+.btn-accept:hover{background:var(--matcha2);}
+
+.btn-prepare{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(212,168,83,0.2);}
+.btn-prepare:hover{background:rgba(212,168,83,0.2);}
+
+.btn-ready{background:var(--matcha-dim);color:var(--matcha2);border:1px solid rgba(122,158,90,0.2);}
+.btn-ready:hover{background:rgba(122,158,90,0.2);}
+
+.btn-assign{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(91,143,166,0.2);}
+.btn-assign:hover{background:rgba(91,143,166,0.2);}
+
+.btn-done{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
+.btn-done:hover{border-color:var(--border2);}
+
+.btn-reject{background:transparent;color:var(--red);border:1px solid var(--red-dim);font-size:11px;padding:6px 12px;}
+.btn-reject:hover{background:var(--red-dim);}
+
+/* Rider assign modal */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:999;
+  display:none;
+}
+
+.modal-box{
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  padding:28px;
+  width:380px;
+  box-shadow:var(--shadow);
+  animation:scaleIn .2s ease;
+}
+
+.modal-title{
+  font-size:17px;
+  font-weight:700;
+  color:var(--cream);
+  margin-bottom:4px;
+}
+
+.modal-sub{
+  font-size:12px;
+  color:var(--text2);
+  margin-bottom:20px;
+}
+
+.rider-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+
+.rider-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:var(--bg4);
+  border:1.5px solid var(--border);
+  border-radius:var(--r2);
+  padding:12px 14px;
+  cursor:pointer;
+  transition:all .15s;
+}
+
+.rider-item:hover,.rider-item.selected{
+  border-color:var(--matcha);
+  background:var(--matcha-glow);
+}
+
+.rider-avatar{
+  width:36px;height:36px;
+  border-radius:50%;
+  background:var(--matcha-dim);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  flex-shrink:0;
+}
+
+.rider-name{font-size:14px;font-weight:600;color:var(--cream);}
+.rider-info{font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;}
+
+.rider-status-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--matcha);
+  margin-left:auto;
+  flex-shrink:0;
+}
+
+.rider-status-dot.busy{background:var(--amber);}
+
+.modal-btns{display:flex;gap:8px;}
+
+.modal-confirm{
+  flex:1;background:var(--matcha);color:#fff;border:none;
+  border-radius:var(--r2);padding:12px;font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;
+  transition:background .15s;
+}
+.modal-confirm:hover{background:var(--matcha2);}
+
+.modal-cancel{
+  background:transparent;color:var(--text2);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:12px 18px;font-family:'DM Sans',sans-serif;
+  font-size:14px;cursor:pointer;transition:all .15s;
+}
+.modal-cancel:hover{border-color:var(--border2);color:var(--text);}
+
+/* Rider page */
+.page{display:none;}
+.page.active{display:block;}
+
+.rider-table-wrap{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  overflow:hidden;
+}
+
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--bg3);border-bottom:1px solid var(--border);}
+th{
+  padding:12px 16px;
+  text-align:left;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--text3);
+  font-family:'DM Mono',monospace;
+}
+
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--bg3);}
+td{padding:14px 16px;font-size:13px;color:var(--text);}
+
+.rider-avail{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:600;
+  padding:3px 10px;border-radius:100px;
+  font-family:'DM Mono',monospace;
+}
+
+.avail-free{background:var(--matcha-dim);color:var(--matcha2);}
+.avail-busy{background:var(--amber-dim);color:var(--amber);}
+.avail-off{background:var(--bg4);color:var(--text3);}
+
+.add-rider-btn{
+  background:var(--matcha);color:#fff;border:none;
+  border-radius:var(--r2);padding:10px 20px;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;margin-bottom:16px;
+  transition:background .15s;
+}
+.add-rider-btn:hover{background:var(--matcha2);}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:28px;right:28px;
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:var(--r2);
+  padding:14px 20px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--cream);
+  box-shadow:var(--shadow);
+  z-index:9999;
+  display:none;
+  animation:slideIn .3s ease;
+}
+
+.toast.show{display:block;}
+.toast .t-icon{margin-right:8px;}
+
+/* History page */
+.history-filter{
+  display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;
+}
+
+.filter-chip{
+  padding:6px 14px;border-radius:100px;
+  font-size:12px;font-weight:600;cursor:pointer;
+  border:1px solid var(--border2);
+  background:transparent;color:var(--text2);
+  transition:all .15s;
+}
+.filter-chip.active{background:var(--matcha-dim);color:var(--matcha2);border-color:var(--matcha-dim);}
+
+/* Empty state */
+.empty-state{
+  text-align:center;padding:60px 24px;
+  color:var(--text3);
+}
+.empty-state .e-icon{font-size:40px;margin-bottom:12px;}
+.empty-state .e-title{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:4px;}
+.empty-state .e-sub{font-size:12px;}
+
+/* New order flash */
+@keyframes newFlash{
+  0%{box-shadow:0 0 0 0 rgba(232,101,74,0.5);}
+  70%{box-shadow:0 0 0 12px rgba(232,101,74,0);}
+  100%{box-shadow:0 0 0 0 rgba(232,101,74,0);}
+}
+.order-card.new{animation:fadeUp .3s ease both,newFlash 1.5s ease 0.3s;}
+
+/* Animations */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px);}
+  to{opacity:1;transform:translateY(0);}
+}
+@keyframes scaleIn{
+  from{opacity:0;transform:scale(.95);}
+  to{opacity:1;transform:scale(1);}
+}
+@keyframes pulse{
+  0%,100%{opacity:1;}
+  50%{opacity:.4;}
+}
+@keyframes slideIn{
+  from{opacity:0;transform:translateY(8px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* Add rider modal */
+.add-rider-modal{display:none;}
+.add-rider-modal.show{display:flex;}
+</style>
 </head>
 <body>
 
-  <!-- ═══════════ LOGIN ═══════════ -->
-  <div id="screen-login" class="screen active">
-    <div class="auth-wrap">
-      <div class="auth-card">
-        <div class="auth-logo">
-          <div class="logo-mark">
-            <svg viewBox="0 0 20 20" fill="none">
-              <path d="M10 2L3 6v8l7 4 7-4V6L10 2z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M10 2v14M3 6l7 4 7-4" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-            </svg>
-          </div>
+<!-- ====== LOGIN ====== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="brand">✦ Boss Panel</div>
+      <div class="title">Soy & Oden</div>
+      <div class="sub">ORDER MANAGEMENT SYSTEM</div>
+    </div>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="boss" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••" id="login-pass">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Login →</button>
+    <div class="login-err" id="login-err">❌ Wrong username or password</div>
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text3);">Default: boss / soyoden2024</div>
+  </div>
+</div>
+
+<!-- ====== DASHBOARD ====== -->
+<div id="dashboard">
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <div class="s-name">Soy & Oden</div>
+        <div class="s-role">BOSS DASHBOARD</div>
+      </div>
+
+      <div class="nav-item active" onclick="showPage('orders',this)">
+        <span class="nav-icon">📋</span> Orders
+        <span class="nav-badge" id="new-badge">0</span>
+      </div>
+      <div class="nav-item" onclick="showPage('riders',this)">
+        <span class="nav-icon">🛵</span> Riders
+      </div>
+      <div class="nav-item" onclick="showPage('history',this)">
+        <span class="nav-icon">📊</span> History
+      </div>
+      <div class="nav-item" onclick="showPage('payroll',this)">
+        <span class="nav-icon">💰</span> Payroll
+      </div>
+      <div class="nav-item" onclick="showPage('menu',this)">
+        <span class="nav-icon">🥛</span> Menu
+      </div>
+
+      <div class="sidebar-bottom">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;font-family:'DM Mono',monospace;">
+          Logged in as <span style="color:var(--matcha);">boss</span>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+      <!-- ── ORDERS PAGE ── -->
+      <div class="page active" id="page-orders">
+        <div class="topbar">
           <div>
-            <div class="logo-text">StaffPortal</div>
-            <div class="logo-sub">Employee System</div>
+            <div class="topbar-title">Live <span>Orders</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;">Real-time order management</div>
+          </div>
+          <div class="topbar-right">
+            <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+            <div class="time-display" id="clock">--:--:--</div>
+            <button onclick="addDemoOrder()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:var(--r2);padding:8px 14px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">+ Simulate Order</button>
           </div>
         </div>
 
-        <h1 class="auth-title">Welcome back</h1>
-        <p class="auth-subtitle">Sign in to your account to continue</p>
-
-        <div id="login-alert" class="alert"></div>
-
-        <div class="field-group">
-          <label class="field-label">Full Name</label>
-          <input type="text" id="login-name" class="field-input" placeholder="Enter your name" autocomplete="name" />
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card red" style="animation-delay:.05s">
+            <div class="stat-label">New Orders</div>
+            <div class="stat-val" id="stat-new">0</div>
+            <div class="stat-sub">Waiting acceptance</div>
+          </div>
+          <div class="stat-card amber" style="animation-delay:.1s">
+            <div class="stat-label">Preparing</div>
+            <div class="stat-val" id="stat-preparing">0</div>
+            <div class="stat-sub">In the kitchen</div>
+          </div>
+          <div class="stat-card blue" style="animation-delay:.15s">
+            <div class="stat-label">Delivering</div>
+            <div class="stat-val" id="stat-delivering">0</div>
+            <div class="stat-sub">On the way</div>
+          </div>
+          <div class="stat-card green" style="animation-delay:.2s">
+            <div class="stat-label">Today Revenue</div>
+            <div class="stat-val" id="stat-revenue">RM 0</div>
+            <div class="stat-sub">Completed orders</div>
+          </div>
         </div>
 
-        <div class="field-group">
-          <label class="field-label">Password</label>
-          <input type="password" id="login-password" class="field-input" placeholder="Enter your password" autocomplete="current-password" />
+        <!-- Tabs -->
+        <div class="tabs">
+          <div class="tab active" onclick="filterOrders('all',this)">All <span class="t-badge" id="tab-all-badge">0</span></div>
+          <div class="tab" onclick="filterOrders('new',this)">New <span class="t-badge" id="tab-new-badge" style="display:none">0</span></div>
+          <div class="tab" onclick="filterOrders('preparing',this)">Preparing</div>
+          <div class="tab" onclick="filterOrders('ready',this)">Ready</div>
+          <div class="tab" onclick="filterOrders('delivering',this)">Delivering</div>
+          <div class="tab" onclick="filterOrders('done',this)">Done</div>
         </div>
 
-        <button class="btn-primary" id="btn-login" onclick="handleLogin()">
-          <span>Sign In</span>
-        </button>
-
-        <div class="auth-switch">
-          Don't have an account? <a onclick="showScreen('screen-register')">Register here</a>
+        <div class="orders-grid" id="orders-container">
+          <div class="empty-state">
+            <div class="e-icon">🛒</div>
+            <div class="e-title">No orders yet</div>
+            <div class="e-sub">Click "Simulate Order" to test the system</div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- ═══════════ REGISTER ═══════════ -->
-  <div id="screen-register" class="screen">
-    <div class="auth-wrap">
-      <div class="auth-card">
-        <div class="auth-logo">
-          <div class="logo-mark">
-            <svg viewBox="0 0 20 20" fill="none">
-              <path d="M10 2L3 6v8l7 4 7-4V6L10 2z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M10 2v14M3 6l7 4 7-4" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-            </svg>
-          </div>
+      <!-- ── RIDERS PAGE ── -->
+      <!-- ── RIDERS PAGE ── -->
+      <div class="page" id="page-riders">
+        <div class="topbar">
           <div>
-            <div class="logo-text">StaffPortal</div>
-            <div class="logo-sub">Employee System</div>
+            <div class="topbar-title">🛵 <span>Riders</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;">Manage your delivery team</div>
+          </div>
+        </div>
+        <div id="riders-list-wrap">
+          <div class="empty-state"><div class="e-icon">⏳</div><div class="e-title">Loading riders...</div></div>
+        </div>
+      </div>
+
+      <!-- ── PAYROLL PAGE ── -->
+      <div class="page" id="page-payroll">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title">💰 <span>Payroll</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;">Pay riders & track earnings</div>
+          </div>
+        </div>
+        <div id="payroll-wrap">
+          <div class="empty-state"><div class="e-icon">⏳</div><div class="e-title">Loading payroll...</div></div>
+        </div>
+      </div>
+
+      <!-- ── HISTORY PAGE ── -->
+      <div class="page" id="page-history">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title">📊 <span>History</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;">All completed orders</div>
           </div>
         </div>
 
-        <h1 class="auth-title">Create account</h1>
-        <p class="auth-subtitle">Register to access the staff portal. Your account will be reviewed by an admin.</p>
-
-        <div id="register-alert" class="alert"></div>
-
-        <div class="field-group">
-          <label class="field-label">Full Name <span class="req-star">*</span></label>
-          <input type="text" id="reg-name" class="field-input" placeholder="Enter your full name" />
+        <div class="history-filter">
+          <div class="filter-chip active" onclick="filterHistory('today',this)">Today</div>
+          <div class="filter-chip" onclick="filterHistory('week',this)">This Week</div>
+          <div class="filter-chip" onclick="filterHistory('all',this)">All Time</div>
         </div>
 
-        <div class="field-group">
-          <label class="field-label">Password <span class="req-star">*</span></label>
-          <input type="password" id="reg-password" class="field-input" placeholder="Create a password" />
+        <div class="stats-row" style="margin-bottom:20px;">
+          <div class="stat-card green">
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-val" id="h-revenue">RM 0</div>
+            <div class="stat-sub">All completed</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">Total Orders</div>
+            <div class="stat-val" id="h-orders">0</div>
+            <div class="stat-sub">Completed</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-label">Avg Order Value</div>
+            <div class="stat-val" id="h-avg">RM 0</div>
+            <div class="stat-sub">Per order</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Top Item</div>
+            <div class="stat-val" style="font-size:18px;" id="h-top">—</div>
+            <div class="stat-sub">Most ordered</div>
+          </div>
         </div>
 
-        <button class="btn-primary" id="btn-register" onclick="handleRegister()">
-          <span>Create Account</span>
-        </button>
-
-        <div class="auth-switch">
-          Already have an account? <a onclick="showScreen('screen-login')">Sign in</a>
+        <div class="orders-grid" id="history-container">
+          <div class="empty-state">
+            <div class="e-icon">📊</div>
+            <div class="e-title">No history yet</div>
+            <div class="e-sub">Complete some orders first</div>
+          </div>
         </div>
       </div>
+
+      <!-- ── MENU PAGE ── -->
+      <div class="page" id="page-menu">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title">🥛 <span>Menu</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;">Manage products & pricing</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" id="menu-grid"></div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /dashboard -->
+
+<!-- ── ASSIGN RIDER MODAL ── -->
+<div class="modal-overlay" id="rider-modal">
+  <div class="modal-box">
+    <div class="modal-title">🛵 Assign Rider</div>
+    <div class="modal-sub" id="modal-order-info">Order #SOD-001 • Delivery to Block A</div>
+    <div class="rider-list" id="rider-list"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-confirm" onclick="confirmAssign()">Assign →</button>
     </div>
   </div>
+</div>
 
-  <!-- ═══════════ PENDING ═══════════ -->
-  <div id="screen-pending" class="screen">
-    <div class="pending-wrap">
-      <div class="pending-card">
-        <div class="pending-icon">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="#f59e0b" stroke-width="1.5"/>
-            <path d="M12 7v5l3 3" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <h2 class="pending-title">Waiting for Approval</h2>
-        <p class="pending-desc">Your account has been created and is currently pending admin approval. You'll be able to access the portal once an admin reviews your account.</p>
-        <button class="btn-secondary" onclick="logout()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Back to Login
-        </button>
-      </div>
+<!-- ── ADD RIDER MODAL ── -->
+<div class="modal-overlay add-rider-modal" id="add-rider-modal">
+  <div class="modal-box">
+    <div class="modal-title">+ Add New Rider</div>
+    <div class="modal-sub">Student registration for delivery</div>
+    <div class="field"><label>Full Name</label><input type="text" id="r-name" placeholder="Ahmad Hafiz"></div>
+    <div class="field"><label>Student ID</label><input type="text" id="r-sid" placeholder="2021-12345"></div>
+    <div class="field"><label>Phone</label><input type="text" id="r-phone" placeholder="012-345 6789"></div>
+    <div class="field"><label>Vehicle Plate</label><input type="text" id="r-plate" placeholder="WXY 1234"></div>
+    <div class="modal-btns" style="margin-top:8px;">
+      <button class="modal-cancel" onclick="closeAddRider()">Cancel</button>
+      <button class="modal-confirm" onclick="saveRider()">Add Rider →</button>
     </div>
   </div>
+</div>
 
-  <!-- ═══════════ DASHBOARD ═══════════ -->
-  <div id="screen-dashboard" class="screen">
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-logo">
-          <div class="topbar-logo-mark">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-              <path d="M10 2L3 6v8l7 4 7-4V6L10 2z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M10 2v14M3 6l7 4 7-4" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <span class="topbar-brand">StaffPortal</span>
+<!-- Toast -->
+<div class="toast" id="toast"><span class="t-icon">✅</span><span id="toast-msg">Done!</span></div>
+
+<script type="module">
+// ═══════════════════════════════════════════════════════
+//  FIREBASE
+// ═══════════════════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, doc, onSnapshot, updateDoc,
+  query, orderBy, increment, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCkFmMpScduIj1493VWQdDCOAaTUWnWEbk",
+  authDomain: "mmu-delivery-a4919.firebaseapp.com",
+  projectId: "mmu-delivery-a4919",
+  storageBucket: "mmu-delivery-a4919.firebasestorage.app",
+  messagingSenderId: "945529333130",
+  appId: "1:945529333130:web:915bfd830b44de4e19d473"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+const CREDS = {user:'boss', pass:'soyoden2024'};
+let orders  = [];
+let riders  = [];   // from Firestore riders collection
+let currentFilter  = 'all';
+let assigningDocId = null;
+let selectedRiderId = null;
+
+const menus = [
+  {emoji:'🍵',name:'Matcha Soy Milk',   price:7.50,cat:'Soy Milk'},
+  {emoji:'🥛',name:'Classic Soy Milk',  price:5.50,cat:'Soy Milk'},
+  {emoji:'🍫',name:'Milo Soy Milk',     price:7.00,cat:'Soy Milk'},
+  {emoji:'🫐',name:'Butterfly Pea Soy', price:8.00,cat:'Soy Milk'},
+  {emoji:'☕',name:'Coffee Soy Milk',   price:8.50,cat:'Soy Milk'},
+  {emoji:'🍢',name:'Oden Set',          price:12.00,cat:'Oden'},
+];
+
+// ═══════════════════════════════════════════════════════
+//  LOGIN
+// ═══════════════════════════════════════════════════════
+function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value.trim();
+  const err=document.getElementById('login-err');
+  if(u===CREDS.user && p===CREDS.pass){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    initDashboard();
+  } else { err.style.display='block'; setTimeout(()=>err.style.display='none',3000); }
+}
+window.doLogin=doLogin;
+document.addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+
+function doLogout(){
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+}
+window.doLogout=doLogout;
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+function initDashboard(){
+  startClock();
+  renderMenu();
+
+  // Listen orders
+  const qo = query(collection(db,'orders'), orderBy('timestamp','desc'));
+  onSnapshot(qo, snap=>{
+    orders=[];
+    snap.forEach(d=>orders.push({ docId:d.id, ...d.data(), time:d.data().timestamp?.toDate()||new Date() }));
+    renderOrders(); updateStats(); updateNewBadge();
+  });
+
+  // Listen riders (from Firestore)
+  const qr = query(collection(db,'riders'), orderBy('registeredAt','desc'));
+  onSnapshot(qr, snap=>{
+    riders=[];
+    snap.forEach(d=>riders.push({ docId:d.id, ...d.data() }));
+    renderRiders();
+    renderPayroll();
+  });
+}
+
+function startClock(){
+  const tick=()=>{ document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-MY',{hour12:false}); };
+  tick(); setInterval(tick,1000);
+}
+
+// ═══════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════
+function showPage(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='history')  renderHistory();
+  if(name==='payroll')  renderPayroll();
+  if(name==='riders')   renderRiders();
+}
+window.showPage=showPage;
+
+// ═══════════════════════════════════════════════════════
+//  ORDERS
+// ═══════════════════════════════════════════════════════
+function timeAgo(date){
+  if(!date) return '';
+  const d=Math.floor((new Date()-date)/1000);
+  if(d<60) return d+'s ago';
+  if(d<3600) return Math.floor(d/60)+'m ago';
+  return Math.floor(d/3600)+'h ago';
+}
+
+function renderOrders(){
+  const container=document.getElementById('orders-container');
+  const filtered=currentFilter==='all'?orders:orders.filter(o=>o.status===currentFilter);
+  if(!filtered.length){
+    container.innerHTML=`<div class="empty-state"><div class="e-icon">🛒</div><div class="e-title">No ${currentFilter==='all'?'':currentFilter} orders</div><div class="e-sub">Waiting for customers</div></div>`;
+    return;
+  }
+  container.innerHTML=filtered.map((o,i)=>`
+    <div class="order-card ${o.status}" style="animation-delay:${i*0.04}s">
+      <div class="order-num"><span class="num">#${o.code?.slice(-3)||'—'}</span><span style="font-size:9px;color:var(--text3);">${timeAgo(o.time)}</span></div>
+      <div class="order-info">
+        <div class="order-top">
+          <span class="order-name">${o.name}</span>
+          <span class="order-type-badge ${o.type==='delivery'?'badge-delivery':'badge-pickup'}">${o.type==='delivery'?'🛵 Delivery':'🛍 Pick Up'}</span>
+          <span class="order-status-badge status-${o.status}">${statusLabel(o.status)}</span>
+          ${o.rider?`<span style="font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;">🛵 ${o.rider}</span>`:''}
+        </div>
+        <div class="order-items">
+          ${(o.items||[]).map(it=>`<span>${it.emoji} ${it.name}</span> ×${it.qty} <span style="color:var(--text3);font-size:11px;">(${it.custom})</span><br>`).join('')}
+          ${o.address?`<span style="color:var(--blue);font-size:11px;">📍 ${o.address}</span>`:''}
+        </div>
+        <div class="order-meta">
+          <span class="phone">📞 ${o.phone}</span>
+          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">💳 ${o.paymentMethod||'TNG'}</span>
         </div>
       </div>
-      <div class="topbar-right">
-        <div class="user-badge">
-          <div class="user-avatar" id="user-avatar-text">JD</div>
-          <span class="user-name" id="user-display-name">Staff</span>
+      <div class="order-actions">
+        <div class="order-total">RM ${(o.total||0).toFixed(2)}</div>
+        ${actionButtons(o)}
+      </div>
+    </div>`).join('');
+}
+
+function statusLabel(s){
+  return {new:'🔴 New',preparing:'🟡 Preparing',ready:'🟢 Ready',delivering:'🔵 Delivering',done:'✅ Done'}[s]||s;
+}
+
+function actionButtons(o){
+  const id=o.docId;
+  if(o.status==='new')       return `<button class="action-btn btn-accept" onclick="updateStatus('${id}','preparing')">✅ Accept & Prepare</button><button class="action-btn btn-reject" onclick="updateStatus('${id}','done')">✗ Reject</button>`;
+  if(o.status==='preparing') return `<button class="action-btn btn-ready" onclick="updateStatus('${id}','ready')">✅ Food Ready</button>`;
+  if(o.status==='ready'&&o.type==='delivery') return `<button class="action-btn btn-assign" onclick="openAssign('${id}','${o.name}','${o.address||''}')">🛵 Assign Rider</button>`;
+  if(o.status==='ready'&&o.type==='pickup')   return `<button class="action-btn btn-done" onclick="updateStatus('${id}','done')">✅ Customer Picked Up</button>`;
+  if(o.status==='delivering') return `<button class="action-btn btn-done" onclick="updateStatus('${id}','done')">✅ Delivered</button>`;
+  if(o.status==='done')       return `<span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">COMPLETED</span>`;
+  return '';
+}
+
+async function updateStatus(docId,newStatus){
+  try{
+    await updateDoc(doc(db,'orders',docId),{status:newStatus});
+    const msgs={preparing:'🍳 Preparing!',ready:'✅ Food ready!',delivering:'🛵 On the way!',done:'🎉 Completed!'};
+    if(msgs[newStatus]) showToast(msgs[newStatus]);
+  }catch(e){ showToast('❌ '+e.message); }
+}
+window.updateStatus=updateStatus;
+
+function filterOrders(filter,el){
+  currentFilter=filter;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderOrders();
+}
+window.filterOrders=filterOrders;
+
+function updateStats(){
+  document.getElementById('stat-new').textContent        = orders.filter(o=>o.status==='new').length;
+  document.getElementById('stat-preparing').textContent  = orders.filter(o=>o.status==='preparing').length;
+  document.getElementById('stat-delivering').textContent = orders.filter(o=>o.status==='delivering').length;
+  const rev=orders.filter(o=>o.status==='done').reduce((s,o)=>s+(o.total||0),0);
+  document.getElementById('stat-revenue').textContent    = 'RM '+rev.toFixed(0);
+}
+function updateNewBadge(){
+  const n=orders.filter(o=>o.status==='new').length;
+  const b=document.getElementById('new-badge');
+  b.textContent=n; b.style.display=n>0?'inline-flex':'none';
+  document.getElementById('tab-all-badge').textContent=orders.length;
+  const nb=document.getElementById('tab-new-badge');
+  nb.textContent=n; nb.style.display=n>0?'inline-flex':'none';
+}
+
+// ═══════════════════════════════════════════════════════
+//  ASSIGN RIDER
+// ═══════════════════════════════════════════════════════
+function openAssign(docId,name,address){
+  assigningDocId=docId; selectedRiderId=null;
+  document.getElementById('modal-order-info').textContent=`${name} · ${address||'Pickup'}`;
+  const activeRiders=riders.filter(r=>r.status==='active');
+  document.getElementById('rider-list').innerHTML = activeRiders.length
+    ? activeRiders.map(r=>`
+        <div class="rider-item" id="ri-${r.docId}" onclick="selectRider('${r.docId}')">
+          <div class="rider-avatar">🧑</div>
+          <div><div class="rider-name">${r.name}</div><div class="rider-info">${r.phone} · ${r.wallet||'TNG'}: ${r.tngPhone||r.bankAccount||'—'}</div></div>
+          <div class="rider-status-dot"></div>
+          <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--matcha2);">ACTIVE</span>
+        </div>`).join('')
+    : `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No active riders available.<br>Approve riders in the Riders tab first.</div>`;
+  document.getElementById('rider-modal').style.display='flex';
+}
+window.openAssign=openAssign;
+
+function selectRider(id){
+  selectedRiderId=id;
+  document.querySelectorAll('.rider-item').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('ri-'+id)?.classList.add('selected');
+}
+window.selectRider=selectRider;
+
+async function confirmAssign(){
+  if(!selectedRiderId){ showToast('⚠️ Select a rider first'); return; }
+  const rider=riders.find(r=>r.docId===selectedRiderId);
+  try{
+    await updateDoc(doc(db,'orders',assigningDocId),{status:'delivering',rider:rider.name});
+    closeModal();
+    showToast(`🛵 ${rider.name} assigned!`);
+  }catch(e){ showToast('❌ '+e.message); }
+}
+window.confirmAssign=confirmAssign;
+
+function closeModal(){ document.getElementById('rider-modal').style.display='none'; assigningDocId=null; selectedRiderId=null; }
+window.closeModal=closeModal;
+
+// ═══════════════════════════════════════════════════════
+//  RIDERS PAGE — from Firebase
+// ═══════════════════════════════════════════════════════
+function renderRiders(){
+  const wrap=document.getElementById('riders-list-wrap');
+  if(!riders.length){
+    wrap.innerHTML=`<div class="empty-state"><div class="e-icon">🛵</div><div class="e-title">No riders yet</div><div class="e-sub">Riders register through the Rider App.<br>Approve them here.</div></div>`;
+    return;
+  }
+
+  const statusColor={active:'var(--matcha2)',pending:'var(--amber)',suspended:'var(--red)'};
+  const statusBg   ={active:'var(--matcha-dim)',pending:'var(--amber-dim)',suspended:'var(--red-dim)'};
+
+  wrap.innerHTML=`<div class="rider-table-wrap"><table>
+    <thead><tr>
+      <th>Rider</th><th>Student ID</th><th>Age</th><th>Phone</th>
+      <th>Wallet</th><th>Today</th><th>Total Earned</th><th>Unpaid</th><th>Status</th><th>Action</th>
+    </tr></thead>
+    <tbody>
+      ${riders.map(r=>`<tr>
+        <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:32px;height:32px;border-radius:50%;background:var(--matcha-dim);display:flex;align-items:center;justify-content:center;">🧑</div><b>${r.name}</b></div></td>
+        <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);">${r.sid||'—'}</td>
+        <td style="font-size:12px;">${r.age||'—'}</td>
+        <td style="color:var(--milo);font-family:'DM Mono',monospace;font-size:12px;">${r.phone}</td>
+        <td style="font-size:12px;">
+          <div style="font-weight:600;">${r.wallet||'TNG'}</div>
+          <div style="color:var(--text3);font-size:11px;font-family:'DM Mono',monospace;">${r.tngPhone||r.bankAccount||'—'}</div>
+        </td>
+        <td style="font-weight:600;">RM ${(r.todayEarnings||0).toFixed(2)}</td>
+        <td style="color:var(--matcha);font-weight:700;font-family:'DM Mono',monospace;">RM ${(r.totalEarnings||0).toFixed(2)}</td>
+        <td style="color:${(r.unpaidEarnings||0)>0?'var(--amber)':'var(--text3)'};font-weight:700;font-family:'DM Mono',monospace;">RM ${(r.unpaidEarnings||0).toFixed(2)}</td>
+        <td><span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;font-family:'DM Mono',monospace;background:${statusBg[r.status||'pending']};color:${statusColor[r.status||'pending']};">${(r.status||'pending').toUpperCase()}</span></td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;min-width:160px;">
+          ${r.status==='pending'?`<button onclick="setRiderStatus('${r.docId}','active')" style="background:var(--matcha);border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;color:#fff;font-weight:700;">✅ Approve</button>`:''}
+          ${r.status==='active'?`<button onclick="setRiderStatus('${r.docId}','suspended')" style="background:var(--red-dim);border:1px solid var(--red-dim);border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;color:var(--red);">Suspend</button>`:''}
+          ${r.status==='suspended'?`<button onclick="setRiderStatus('${r.docId}','active')" style="background:var(--matcha-dim);border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;color:var(--matcha2);">Reactivate</button>`:''}
+        </td>
+      </tr>`).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+async function setRiderStatus(docId, status){
+  try{
+    await updateDoc(doc(db,'riders',docId),{status});
+    showToast(status==='active'?'✅ Rider approved!':status==='suspended'?'🚫 Rider suspended':'♻️ Rider reactivated');
+  }catch(e){ showToast('❌ '+e.message); }
+}
+window.setRiderStatus=setRiderStatus;
+
+// ═══════════════════════════════════════════════════════
+//  PAYROLL PAGE
+// ═══════════════════════════════════════════════════════
+function renderPayroll(){
+  const wrap=document.getElementById('payroll-wrap');
+  const activeRiders=riders.filter(r=>r.status==='active'||r.unpaidEarnings>0);
+
+  const totalUnpaid=riders.reduce((s,r)=>s+(r.unpaidEarnings||0),0);
+
+  let html=`
+    <div style="background:linear-gradient(135deg,var(--matcha-dim),rgba(122,158,90,0.05));border:1px solid rgba(122,158,90,0.2);border-radius:var(--r);padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:16px;">
+      <div style="font-size:36px;">💰</div>
+      <div>
+        <div style="font-size:11px;color:var(--matcha);font-weight:700;letter-spacing:.1em;font-family:'DM Mono',monospace;">TOTAL UNPAID TO RIDERS</div>
+        <div style="font-size:32px;font-weight:700;color:var(--cream);">RM ${totalUnpaid.toFixed(2)}</div>
+        <div style="font-size:12px;color:var(--text2);">${riders.filter(r=>(r.unpaidEarnings||0)>0).length} riders awaiting payment</div>
+      </div>
+    </div>`;
+
+  if(!riders.length){
+    wrap.innerHTML=html+`<div class="empty-state"><div class="e-icon">🛵</div><div class="e-title">No riders yet</div></div>`;
+    return;
+  }
+
+  html += riders.map(r=>{
+    const unpaid=r.unpaidEarnings||0;
+    const payInfo = r.wallet==='TNG'
+      ? `Touch \'n Go → <b>${r.tngPhone||'—'}</b>`
+      : `DuitNow → <b>${r.bankName} ${r.bankAccount||'—'}</b>`;
+    return `
+    <div style="background:var(--card);border:1px solid ${unpaid>0?'rgba(122,158,90,0.25)':'var(--border)'};border-radius:var(--r);padding:20px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div style="width:44px;height:44px;border-radius:14px;background:var(--matcha-dim);display:flex;align-items:center;justify-content:center;font-size:20px;">🧑</div>
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:700;color:var(--cream);">${r.name}</div>
+          <div style="font-size:12px;color:var(--text2);">${r.sid||''} · ${r.phone}</div>
         </div>
-        <button class="btn-logout" onclick="logout()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Logout
+        <div style="text-align:right;">
+          <div style="font-size:22px;font-weight:800;color:${unpaid>0?'var(--matcha)':'var(--text3)'};">RM ${unpaid.toFixed(2)}</div>
+          <div style="font-size:11px;color:var(--text3);">unpaid</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:16px;font-weight:700;color:var(--cream);">${r.totalOrders||0}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">TOTAL ORDERS</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:16px;font-weight:700;color:var(--cream);">RM ${(r.totalEarnings||0).toFixed(0)}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">TOTAL EARNED</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:16px;font-weight:700;color:var(--amber);">RM ${(r.todayEarnings||0).toFixed(0)}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">TODAY</div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:var(--text2);">
+        💳 Pay via: ${payInfo}
+      </div>
+
+      ${unpaid>0 ? `
+      <div style="display:flex;gap:8px;">
+        <a href="${r.wallet==='TNG'
+          ? 'https://wa.me/6'+r.tngPhone+'?text=Hi+'+encodeURIComponent(r.name)+',+here+is+your+payment+of+RM+'+unpaid.toFixed(2)+'+from+Soy+%26+Oden.+Thank+you!'
+          : '#'}"
+          target="_blank"
+          style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:12px;font-size:13px;font-weight:600;color:var(--text2);text-decoration:none;text-align:center;">
+          📲 WhatsApp Rider
+        </a>
+        <button onclick="markPaid('${r.docId}','${r.name}',${unpaid})"
+          style="flex:2;background:var(--matcha);border:none;border-radius:var(--r2);padding:12px;font-size:14px;font-weight:700;cursor:pointer;color:#fff;box-shadow:0 4px 16px rgba(122,158,90,0.3);">
+          ✅ Mark as Paid · RM ${unpaid.toFixed(2)}
         </button>
+      </div>` : `
+      <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;font-size:13px;color:var(--text3);">
+        ✅ All paid up
+      </div>`}
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML=html;
+}
+
+async function markPaid(docId, name, amount){
+  if(!confirm(`Mark RM ${amount.toFixed(2)} as paid to ${name}?`)) return;
+  try{
+    await updateDoc(doc(db,'riders',docId),{
+      unpaidEarnings: 0,
+      lastPaidAt:     new Date().toISOString(),
+      lastPaidAmount: amount,
+    });
+    showToast(`✅ RM ${amount.toFixed(2)} marked as paid to ${name}!`);
+  }catch(e){ showToast('❌ '+e.message); }
+}
+window.markPaid=markPaid;
+
+// ═══════════════════════════════════════════════════════
+//  HISTORY
+// ═══════════════════════════════════════════════════════
+function renderHistory(){
+  const done=orders.filter(o=>o.status==='done');
+  const rev=done.reduce((s,o)=>s+(o.total||0),0);
+  document.getElementById('h-orders').textContent  = done.length;
+  document.getElementById('h-revenue').textContent = 'RM '+rev.toFixed(0);
+  document.getElementById('h-avg').textContent     = done.length?'RM '+(rev/done.length).toFixed(2):'RM 0';
+  const counts={};
+  done.forEach(o=>(o.items||[]).forEach(it=>{ counts[it.name]=(counts[it.name]||0)+it.qty; }));
+  const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('h-top').textContent=top?top[0].split(' ').slice(0,2).join(' '):'—';
+  const container=document.getElementById('history-container');
+  if(!done.length){ container.innerHTML=`<div class="empty-state"><div class="e-icon">📊</div><div class="e-title">No completed orders</div></div>`; return; }
+  container.innerHTML=done.map((o,i)=>`
+    <div class="order-card done" style="animation-delay:${i*0.03}s">
+      <div class="order-num"><span class="num">${o.code||'—'}</span></div>
+      <div class="order-info">
+        <div class="order-top">
+          <span class="order-name">${o.name}</span>
+          <span class="order-type-badge ${o.type==='delivery'?'badge-delivery':'badge-pickup'}">${o.type==='delivery'?'🛵 Delivery':'🛍 Pick Up'}</span>
+          <span class="order-status-badge status-done">✅ Done</span>
+        </div>
+        <div class="order-items">${(o.items||[]).map(it=>`<span>${it.emoji} ${it.name}</span> ×${it.qty}<br>`).join('')}</div>
+        <div class="order-meta"><span class="phone">📞 ${o.phone}</span><span>⏱ ${timeAgo(o.time)}</span></div>
       </div>
-    </div>
+      <div class="order-actions"><div class="order-total">RM ${(o.total||0).toFixed(2)}</div></div>
+    </div>`).join('');
+}
+window.renderHistory=renderHistory;
 
-    <div class="dashboard-content">
-      <div class="greeting-label">Dashboard</div>
-      <h1 class="greeting-title">Hello, <span id="greeting-name">there</span> 👋</h1>
-      <p class="greeting-sub">Select a service below to submit a new application.</p>
+function filterHistory(f,el){
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active'); renderHistory();
+}
+window.filterHistory=filterHistory;
 
-      <div class="services-label">Available Services</div>
+// ═══════════════════════════════════════════════════════
+//  MENU
+// ═══════════════════════════════════════════════════════
+function renderMenu(){
+  document.getElementById('menu-grid').innerHTML=menus.map(m=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;display:flex;align-items:center;gap:14px;">
+      <div style="width:52px;height:52px;border-radius:14px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:26px;">${m.emoji}</div>
+      <div style="flex:1;"><div style="font-size:14px;font-weight:600;color:var(--cream);">${m.name}</div><div style="font-size:11px;color:var(--text3);">${m.cat}</div></div>
+      <div style="font-size:16px;font-weight:700;color:var(--matcha);font-family:'DM Mono',monospace;">RM ${m.price.toFixed(2)}</div>
+    </div>`).join('');
+}
 
-      <div class="services-grid">
+// ═══════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+window.showToast=showToast;
+window.addDemoOrder=function(){ showToast('ℹ️ Orders come from the customer app!'); };
 
-        <div class="service-card" onclick="openForm('fibre')">
-          <div class="service-arrow">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div class="service-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#3daa6b" stroke-width="1.5" stroke-linecap="round">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-              <path d="M2 12h20"/>
-            </svg>
-          </div>
-          <div class="service-name">Fibre</div>
-          <div class="service-desc">Broadband fibre plan applications</div>
-        </div>
-
-        <div class="service-card" onclick="openForm('mobile')">
-          <div class="service-arrow">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div class="service-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#3daa6b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="5" y="2" width="14" height="20" rx="2"/>
-              <path d="M12 18h.01"/>
-            </svg>
-          </div>
-          <div class="service-name">Mobile Line</div>
-          <div class="service-desc">New mobile line registrations</div>
-        </div>
-
-        <div class="service-card" onclick="openForm('device')">
-          <div class="service-arrow">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div class="service-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#3daa6b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="3" width="20" height="14" rx="2"/>
-              <path d="M8 21h8M12 17v4"/>
-            </svg>
-          </div>
-          <div class="service-name">Device</div>
-          <div class="service-desc">Device purchase &amp; IMEI tracking</div>
-        </div>
-
-        <div class="service-card" onclick="openForm('wifi')">
-          <div class="service-arrow">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div class="service-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#3daa6b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
-              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-              <circle cx="12" cy="20" r="1" fill="#3daa6b"/>
-            </svg>
-          </div>
-          <div class="service-name">Home WiFi 5G</div>
-          <div class="service-desc">5G home broadband applications</div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════ FORM ═══════════ -->
-  <div id="screen-form" class="screen">
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-logo">
-          <div class="topbar-logo-mark">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-              <path d="M10 2L3 6v8l7 4 7-4V6L10 2z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M10 2v14M3 6l7 4 7-4" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <span class="topbar-brand">StaffPortal</span>
-        </div>
-      </div>
-      <div class="topbar-right">
-        <div class="user-badge">
-          <div class="user-avatar" id="form-avatar-text">JD</div>
-          <span class="user-name" id="form-display-name">Staff</span>
-        </div>
-        <button class="btn-logout" onclick="logout()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Logout
-        </button>
-      </div>
-    </div>
-
-    <div class="form-content">
-      <button class="form-back" onclick="showScreen('screen-dashboard')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Back to Dashboard
-      </button>
-
-      <div class="form-card">
-        <div class="form-icon" id="form-icon"></div>
-        <h2 class="form-title" id="form-title">Form</h2>
-        <p class="form-subtitle" id="form-subtitle">Fill in the details below</p>
-
-        <div id="form-alert" class="alert"></div>
-        <div id="form-fields"></div>
-
-        <div id="form-success" class="success-state">
-          <div class="success-circle">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#3daa6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <h3 class="success-title">Submission Successful</h3>
-          <p class="success-desc">Your application has been submitted. Our team will process it shortly.</p>
-          <button class="btn-ghost" onclick="showScreen('screen-dashboard')">Back to Dashboard</button>
-        </div>
-
-        <div class="form-actions" id="form-actions">
-          <button class="btn-primary" id="btn-submit" onclick="handleFormSubmit()">
-            <span>Submit Application</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // ╔══════════════════════════════════════════════╗
-    // ║  FIREBASE CONFIG — replace with your values  ║
-    // ╚══════════════════════════════════════════════╝
-    const FIREBASE_CONFIG = {
-      apiKey:            "AIzaSyAmXvhN8Qjszp8LID909ZvLDt0dpRHDgN4",
-      authDomain:        "worker-sales-record.firebaseapp.com",
-      projectId:         "worker-sales-record",
-      storageBucket:     "worker-sales-record.firebasestorage.app",
-      messagingSenderId: "593835299596",
-      appId:             "1:593835299596:web:7b6e0bd929c1a6d71caf29"
-    };
-
-    // ─── State ───────────────────────────────────────
-    let db          = null;
-    let currentUser = null;
-    let currentForm = null;
-
-    // ─── Firebase Init ───────────────────────────────
-    async function initFirebase() {
-      try {
-        if (typeof firebase !== 'undefined') {
-          firebase.initializeApp(FIREBASE_CONFIG);
-          db = firebase.firestore();
-          console.log('[StaffPortal] Firebase connected.');
-        } else {
-          console.warn('[StaffPortal] Firebase SDK not loaded — running in demo mode.');
-        }
-      } catch(e) {
-        console.warn('[StaffPortal] Firebase init failed — demo mode.', e);
-      }
-    }
-
-    // ─── Screen Router ───────────────────────────────
-    function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      window.scrollTo(0, 0);
-    }
-
-    // ─── Alert Helper ────────────────────────────────
-    function showAlert(id, type, msg) {
-      const el = document.getElementById(id);
-      const icons = {
-        error:   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-        success: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-        warning: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="1.5"/><path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-        info:    '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
-      };
-      el.className = 'alert show alert-' + type;
-      el.innerHTML = (icons[type] || '') + '<span>' + msg + '</span>';
-    }
-
-    function hideAlert(id) {
-      const el = document.getElementById(id);
-      el.className = 'alert';
-      el.innerHTML = '';
-    }
-
-    // ─── Button Loading State ─────────────────────────
-    function setLoadingBtn(btnId, loading, idleLabel) {
-      const btn = document.getElementById(btnId);
-      if (!btn) return;
-      btn.disabled = loading;
-      btn.innerHTML = loading
-        ? '<div class="spinner"></div><span>Please wait...</span>'
-        : '<span>' + (idleLabel || 'Submit') + '</span>';
-    }
-
-    // ─── User UI ──────────────────────────────────────
-    function getInitials(name) {
-      return name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    }
-
-    function updateUserUI(name) {
-      const initials = getInitials(name);
-      ['user-avatar-text', 'form-avatar-text'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = initials;
-      });
-      ['user-display-name', 'form-display-name'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = name;
-      });
-      const greet = document.getElementById('greeting-name');
-      if (greet) greet.textContent = name.split(' ')[0];
-    }
-
-    // ─── REGISTER ─────────────────────────────────────
-    async function handleRegister() {
-      hideAlert('register-alert');
-      const name = document.getElementById('reg-name').value.trim();
-      const pass = document.getElementById('reg-password').value.trim();
-
-      if (!name || !pass) {
-        showAlert('register-alert', 'error', 'Please fill in all fields.');
-        return;
-      }
-      if (pass.length < 4) {
-        showAlert('register-alert', 'error', 'Password must be at least 4 characters.');
-        return;
-      }
-
-      setLoadingBtn('btn-register', true);
-
-      if (db) {
-        try {
-          const existing = await db.collection('users').where('name', '==', name).get();
-          if (!existing.empty) {
-            showAlert('register-alert', 'error', 'A user with this name already exists.');
-            setLoadingBtn('btn-register', false, 'Create Account');
-            return;
-          }
-          await db.collection('users').add({
-            name,
-            password: pass,
-            status: 'pending',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          document.getElementById('reg-name').value = '';
-          document.getElementById('reg-password').value = '';
-          showAlert('register-alert', 'success', 'Account created! Waiting for admin approval.');
-          setLoadingBtn('btn-register', false, 'Create Account');
-          setTimeout(() => showScreen('screen-pending'), 1800);
-        } catch (e) {
-          showAlert('register-alert', 'error', 'Registration failed. Please try again.');
-          setLoadingBtn('btn-register', false, 'Create Account');
-        }
-      } else {
-        // Demo mode
-        setTimeout(() => {
-          setLoadingBtn('btn-register', false, 'Create Account');
-          showAlert('register-alert', 'success', 'Account created (demo mode)! Waiting for admin approval.');
-          setTimeout(() => showScreen('screen-pending'), 1800);
-        }, 1200);
-      }
-    }
-
-    // ─── LOGIN ────────────────────────────────────────
-    async function handleLogin() {
-      hideAlert('login-alert');
-      const name = document.getElementById('login-name').value.trim();
-      const pass = document.getElementById('login-password').value.trim();
-
-      if (!name || !pass) {
-        showAlert('login-alert', 'error', 'Please enter your name and password.');
-        return;
-      }
-
-      setLoadingBtn('btn-login', true);
-
-      if (db) {
-        try {
-          const snap = await db.collection('users')
-            .where('name', '==', name)
-            .where('password', '==', pass)
-            .get();
-
-          setLoadingBtn('btn-login', false, 'Sign In');
-
-          if (snap.empty) {
-            showAlert('login-alert', 'error', 'Incorrect name or password.');
-            return;
-          }
-
-          const doc  = snap.docs[0];
-          const data = doc.data();
-          currentUser = { id: doc.id, ...data };
-
-          if (data.status === 'pending') {
-            showScreen('screen-pending');
-          } else if (data.status === 'suspended') {
-            showAlert('login-alert', 'error', 'Your account has been suspended. Please contact admin.');
-          } else if (data.status === 'approved') {
-            updateUserUI(data.name);
-            showScreen('screen-dashboard');
-          } else {
-            showAlert('login-alert', 'error', 'Unknown account status. Contact admin.');
-          }
-        } catch (e) {
-          showAlert('login-alert', 'error', 'Login failed. Please try again.');
-          setLoadingBtn('btn-login', false, 'Sign In');
-        }
-      } else {
-        // Demo mode: password "pending" / "suspended" / anything else = approved
-        setTimeout(() => {
-          setLoadingBtn('btn-login', false, 'Sign In');
-          if (pass === 'pending') {
-            showScreen('screen-pending');
-          } else if (pass === 'suspended') {
-            showAlert('login-alert', 'error', 'Your account has been suspended. Please contact admin.');
-          } else {
-            currentUser = { id: 'demo', name, status: 'approved' };
-            updateUserUI(name);
-            showScreen('screen-dashboard');
-          }
-        }, 1000);
-      }
-    }
-
-    // ─── LOGOUT ───────────────────────────────────────
-    function logout() {
-      currentUser = null;
-      document.getElementById('login-name').value    = '';
-      document.getElementById('login-password').value = '';
-      hideAlert('login-alert');
-      showScreen('screen-login');
-    }
-
-    // ─── FORM CONFIGS ─────────────────────────────────
-    const formConfigs = {
-      fibre: {
-        title:    'Fibre Application',
-        subtitle: 'Submit a new fibre broadband plan application',
-        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="#3daa6b" stroke-width="1.5" stroke-linecap="round">
-                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
-                 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                 <path d="M2 12h20"/>
-               </svg>`,
-        fields: [
-          { id: 'name',   label: 'Full Name',     type: 'text',   required: true,  placeholder: 'Customer full name' },
-          { id: 'phone',  label: 'Phone Number',  type: 'text',   required: true,  placeholder: 'e.g. 01X-XXXXXXX' },
-          { id: 'plan',   label: 'Fibre Plan',    type: 'text',   required: true,  placeholder: 'e.g. 100Mbps, 500Mbps' },
-          { id: 'outlet', label: 'Outlet',        type: 'select', required: false, options: ['MEP', 'Hybrid'] }
-        ]
-      },
-      mobile: {
-        title:    'Mobile Line Application',
-        subtitle: 'Register a new mobile line for a customer',
-        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="#3daa6b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                 <rect x="5" y="2" width="14" height="20" rx="2"/>
-                 <path d="M12 18h.01"/>
-               </svg>`,
-        fields: [
-          { id: 'name',   label: 'Full Name',     type: 'text',   required: true,  placeholder: 'Customer full name' },
-          { id: 'ic',     label: 'IC Number',     type: 'text',   required: true,  placeholder: 'e.g. 900101-01-1234' },
-          { id: 'phone',  label: 'Phone Number',  type: 'text',   required: true,  placeholder: 'e.g. 01X-XXXXXXX' },
-          { id: 'plan',   label: 'Mobile Plan',   type: 'text',   required: true,  placeholder: 'e.g. Unlimited, 30GB' },
-          { id: 'outlet', label: 'Outlet',        type: 'select', required: false, options: ['MEP', 'Hybrid'] }
-        ]
-      },
-      device: {
-        title:    'Device Application',
-        subtitle: 'Record a device purchase with IMEI tracking',
-        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="#3daa6b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                 <rect x="2" y="3" width="20" height="14" rx="2"/>
-                 <path d="M8 21h8M12 17v4"/>
-               </svg>`,
-        fields: [
-          { id: 'name',   label: 'Full Name',     type: 'text',   required: true,  placeholder: 'Customer full name' },
-          { id: 'phone',  label: 'Phone Number',  type: 'text',   required: true,  placeholder: 'e.g. 01X-XXXXXXX' },
-          { id: 'imei',   label: 'IMEI Number',   type: 'text',   required: true,  placeholder: '15-digit IMEI number' },
-          { id: 'outlet', label: 'Outlet',        type: 'select', required: false, options: ['MEP', 'Hybrid'] }
-        ]
-      },
-      wifi: {
-        title:    'Home WiFi 5G Application',
-        subtitle: 'Submit a 5G home broadband application',
-        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="#3daa6b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                 <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
-                 <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-                 <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
-                 <circle cx="12" cy="20" r="1" fill="#3daa6b"/>
-               </svg>`,
-        fields: [
-          { id: 'name',   label: 'Full Name',     type: 'text',   required: true,  placeholder: 'Customer full name' },
-          { id: 'ic',     label: 'IC Number',     type: 'text',   required: true,  placeholder: 'e.g. 900101-01-1234' },
-          { id: 'plan',   label: 'WiFi Plan',     type: 'text',   required: true,  placeholder: 'e.g. 5G Home 100GB' },
-          { id: 'outlet', label: 'Outlet',        type: 'select', required: false, options: ['MEP', 'Hybrid'] }
-        ]
-      }
-    };
-
-    // ─── OPEN FORM ────────────────────────────────────
-    function openForm(type) {
-      currentForm = type;
-      const cfg = formConfigs[type];
-
-      document.getElementById('form-icon').innerHTML    = cfg.icon;
-      document.getElementById('form-title').textContent    = cfg.title;
-      document.getElementById('form-subtitle').textContent = cfg.subtitle;
-      document.getElementById('form-success').classList.remove('show');
-      document.getElementById('form-actions').style.display = 'block';
-      hideAlert('form-alert');
-
-      let html = '';
-      cfg.fields.forEach(f => {
-        const badge = f.required
-          ? '<span class="req-star">*</span>'
-          : '<span class="optional-tag">Optional</span>';
-        html += `<div class="field-group">`;
-        html += `<label class="field-label" for="ff-${f.id}">${f.label} ${badge}</label>`;
-        if (f.type === 'select') {
-          html += `<select id="ff-${f.id}" class="field-select">`;
-          html += `<option value="">Select outlet...</option>`;
-          f.options.forEach(o => html += `<option value="${o}">${o}</option>`);
-          html += `</select>`;
-        } else {
-          html += `<input type="${f.type}" id="ff-${f.id}" class="field-input" placeholder="${f.placeholder}" />`;
-        }
-        html += `</div>`;
-      });
-
-      document.getElementById('form-fields').innerHTML = html;
-      setLoadingBtn('btn-submit', false, 'Submit Application');
-
-      if (currentUser) {
-        const initials = getInitials(currentUser.name);
-        const fa = document.getElementById('form-avatar-text');
-        const fn = document.getElementById('form-display-name');
-        if (fa) fa.textContent = initials;
-        if (fn) fn.textContent = currentUser.name;
-      }
-
-      showScreen('screen-form');
-    }
-
-    // ─── FORM SUBMIT ──────────────────────────────────
-    async function handleFormSubmit() {
-      hideAlert('form-alert');
-      const cfg = formConfigs[currentForm];
-      const formData = {};
-      let valid = true;
-      let firstEmpty = null;
-
-      for (const f of cfg.fields) {
-        const el  = document.getElementById('ff-' + f.id);
-        const val = el ? el.value.trim() : '';
-        if (f.required && !val) {
-          valid = false;
-          if (!firstEmpty) firstEmpty = f.label;
-          if (el) {
-            el.style.borderColor = 'var(--red-500)';
-            el.style.boxShadow   = '0 0 0 3px rgba(239,68,68,0.12)';
-          }
-        } else {
-          if (el) { el.style.borderColor = ''; el.style.boxShadow = ''; }
-          formData[f.id] = val;
-        }
-      }
-
-      if (!valid) {
-        showAlert('form-alert', 'error', `Please fill in "${firstEmpty}" — it is required.`);
-        return;
-      }
-
-      setLoadingBtn('btn-submit', true);
-
-      if (db && currentUser) {
-        try {
-          await db.collection('submissions').add({
-            userId:   currentUser.id,
-            userName: currentUser.name,
-            category: currentForm,
-            formData,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          showSuccessState();
-        } catch (e) {
-          showAlert('form-alert', 'error', 'Submission failed. Please try again.');
-          setLoadingBtn('btn-submit', false, 'Submit Application');
-        }
-      } else {
-        // Demo mode
-        setTimeout(showSuccessState, 1400);
-      }
-    }
-
-    function showSuccessState() {
-      document.getElementById('form-fields').innerHTML      = '';
-      document.getElementById('form-actions').style.display = 'none';
-      document.getElementById('form-success').classList.add('show');
-      hideAlert('form-alert');
-    }
-
-    // ─── Boot ─────────────────────────────────────────
-    initFirebase();
-  </script>
+// Remove old modal functions no longer needed
+window.showAddRider=function(){};
+window.closeAddRider=function(){};
+window.saveRider=function(){};
+</script>
 </body>
 </html>
