@@ -818,6 +818,9 @@ td{padding:14px 16px;font-size:13px;color:var(--text);}
       <div class="nav-item" onclick="showPage('history',this)">
         <span class="nav-icon">📊</span> History
       </div>
+      <div class="nav-item" onclick="showPage('payroll',this)">
+        <span class="nav-icon">💰</span> Payroll
+      </div>
       <div class="nav-item" onclick="showPage('menu',this)">
         <span class="nav-icon">🥛</span> Menu
       </div>
@@ -891,6 +894,7 @@ td{padding:14px 16px;font-size:13px;color:var(--text);}
       </div>
 
       <!-- ── RIDERS PAGE ── -->
+      <!-- ── RIDERS PAGE ── -->
       <div class="page" id="page-riders">
         <div class="topbar">
           <div>
@@ -898,25 +902,21 @@ td{padding:14px 16px;font-size:13px;color:var(--text);}
             <div style="font-size:12px;color:var(--text3);margin-top:2px;">Manage your delivery team</div>
           </div>
         </div>
+        <div id="riders-list-wrap">
+          <div class="empty-state"><div class="e-icon">⏳</div><div class="e-title">Loading riders...</div></div>
+        </div>
+      </div>
 
-        <button class="add-rider-btn" onclick="showAddRider()">+ Add New Rider</button>
-
-        <div class="rider-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Rider</th>
-                <th>Student ID</th>
-                <th>Phone</th>
-                <th>Vehicle</th>
-                <th>Status</th>
-                <th>Orders Today</th>
-                <th>Earnings</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="rider-tbody"></tbody>
-          </table>
+      <!-- ── PAYROLL PAGE ── -->
+      <div class="page" id="page-payroll">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title">💰 <span>Payroll</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;">Pay riders & track earnings</div>
+          </div>
+        </div>
+        <div id="payroll-wrap">
+          <div class="empty-state"><div class="e-icon">⏳</div><div class="e-title">Loading payroll...</div></div>
         </div>
       </div>
 
@@ -1015,12 +1015,14 @@ td{padding:14px 16px;font-size:13px;color:var(--text);}
 <div class="toast" id="toast"><span class="t-icon">✅</span><span id="toast-msg">Done!</span></div>
 
 <script type="module">
-// ═══════════════════════════════════════════
-//  FIREBASE SETUP
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  FIREBASE
+// ═══════════════════════════════════════════════════════
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, onSnapshot, updateDoc, query, orderBy, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getFirestore, collection, doc, onSnapshot, updateDoc,
+  query, orderBy, increment, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCkFmMpScduIj1493VWQdDCOAaTUWnWEbk",
@@ -1030,20 +1032,19 @@ const firebaseConfig = {
   messagingSenderId: "945529333130",
   appId: "1:945529333130:web:915bfd830b44de4e19d473"
 };
-
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-// ═══════════════════════════════════════════
-//  DATA
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
 const CREDS = {user:'boss', pass:'soyoden2024'};
-let orders = [];
-let riders = [
-  {id:1,name:'Ahmad Hafiz',sid:'2021-10234',phone:'012-345 6789',plate:'WXY 1234',status:'free',ordersToday:0,earnings:0},
-  {id:2,name:'Nurul Ain',  sid:'2022-20891',phone:'011-234 5678',plate:'VJK 5678',status:'free',ordersToday:0,earnings:0},
-  {id:3,name:'Rizwan Akmal',sid:'2021-33120',phone:'019-876 5432',plate:'BJK 9012',status:'free',ordersToday:0,earnings:0},
-];
+let orders  = [];
+let riders  = [];   // from Firestore riders collection
+let currentFilter  = 'all';
+let assigningDocId = null;
+let selectedRiderId = null;
+
 const menus = [
   {emoji:'🍵',name:'Matcha Soy Milk',   price:7.50,cat:'Soy Milk'},
   {emoji:'🥛',name:'Classic Soy Milk',  price:5.50,cat:'Soy Milk'},
@@ -1052,107 +1053,94 @@ const menus = [
   {emoji:'☕',name:'Coffee Soy Milk',   price:8.50,cat:'Soy Milk'},
   {emoji:'🍢',name:'Oden Set',          price:12.00,cat:'Oden'},
 ];
-let currentFilter  = 'all';
-let assigningDocId = null;
-let selectedRiderId = null;
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  LOGIN
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function doLogin(){
-  const u = document.getElementById('login-user').value.trim();
-  const p = document.getElementById('login-pass').value.trim();
-  const err = document.getElementById('login-err');
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value.trim();
+  const err=document.getElementById('login-err');
   if(u===CREDS.user && p===CREDS.pass){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('dashboard').style.display='block';
     initDashboard();
-  } else {
-    err.style.display='block';
-    setTimeout(()=>err.style.display='none',3000);
-  }
+  } else { err.style.display='block'; setTimeout(()=>err.style.display='none',3000); }
 }
-window.doLogin = doLogin;
+window.doLogin=doLogin;
 document.addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
 
 function doLogout(){
   document.getElementById('dashboard').style.display='none';
   document.getElementById('login-screen').style.display='flex';
 }
-window.doLogout = doLogout;
+window.doLogout=doLogout;
 
-// ═══════════════════════════════════════════
-//  INIT — listen to Firestore in realtime
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
 function initDashboard(){
   startClock();
-  renderRiders();
   renderMenu();
 
-  // Realtime listener — fires whenever ANY order changes
-  const q = query(collection(db,'orders'), orderBy('timestamp','desc'));
-  onSnapshot(q, (snapshot) => {
-    orders = [];
-    snapshot.forEach(docSnap => {
-      const d = docSnap.data();
-      orders.push({
-        ...d,
-        docId: docSnap.id,
-        // Firestore timestamp → JS Date
-        time: d.timestamp ? d.timestamp.toDate() : new Date(),
-      });
-    });
-    renderOrders();
-    updateStats();
-    updateNewBadge();
-    showToast('🔄 Orders synced');
+  // Listen orders
+  const qo = query(collection(db,'orders'), orderBy('timestamp','desc'));
+  onSnapshot(qo, snap=>{
+    orders=[];
+    snap.forEach(d=>orders.push({ docId:d.id, ...d.data(), time:d.data().timestamp?.toDate()||new Date() }));
+    renderOrders(); updateStats(); updateNewBadge();
+  });
+
+  // Listen riders (from Firestore)
+  const qr = query(collection(db,'riders'), orderBy('registeredAt','desc'));
+  onSnapshot(qr, snap=>{
+    riders=[];
+    snap.forEach(d=>riders.push({ docId:d.id, ...d.data() }));
+    renderRiders();
+    renderPayroll();
   });
 }
 
 function startClock(){
-  const tick = () => {
-    document.getElementById('clock').textContent =
-      new Date().toLocaleTimeString('en-MY',{hour12:false});
-  };
+  const tick=()=>{ document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-MY',{hour12:false}); };
   tick(); setInterval(tick,1000);
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  NAVIGATION
-// ═══════════════════════════════════════════
-function showPage(name, el){
+// ═══════════════════════════════════════════════════════
+function showPage(name,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   el.classList.add('active');
-  if(name==='history') renderHistory();
+  if(name==='history')  renderHistory();
+  if(name==='payroll')  renderPayroll();
+  if(name==='riders')   renderRiders();
 }
-window.showPage = showPage;
+window.showPage=showPage;
 
-// ═══════════════════════════════════════════
-//  RENDER ORDERS
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  ORDERS
+// ═══════════════════════════════════════════════════════
 function timeAgo(date){
   if(!date) return '';
-  const diff = Math.floor((new Date()-date)/1000);
-  if(diff<60) return diff+'s ago';
-  if(diff<3600) return Math.floor(diff/60)+'m ago';
-  return Math.floor(diff/3600)+'h ago';
+  const d=Math.floor((new Date()-date)/1000);
+  if(d<60) return d+'s ago';
+  if(d<3600) return Math.floor(d/60)+'m ago';
+  return Math.floor(d/3600)+'h ago';
 }
 
 function renderOrders(){
-  const container = document.getElementById('orders-container');
-  const filtered  = currentFilter==='all' ? orders : orders.filter(o=>o.status===currentFilter);
-  if(filtered.length===0){
-    container.innerHTML=`<div class="empty-state"><div class="e-icon">${currentFilter==='done'?'🎉':'🛒'}</div><div class="e-title">No ${currentFilter==='all'?'':currentFilter} orders</div><div class="e-sub">Waiting for new orders from customers</div></div>`;
+  const container=document.getElementById('orders-container');
+  const filtered=currentFilter==='all'?orders:orders.filter(o=>o.status===currentFilter);
+  if(!filtered.length){
+    container.innerHTML=`<div class="empty-state"><div class="e-icon">🛒</div><div class="e-title">No ${currentFilter==='all'?'':currentFilter} orders</div><div class="e-sub">Waiting for customers</div></div>`;
     return;
   }
-  container.innerHTML = filtered.map((o,i)=>`
+  container.innerHTML=filtered.map((o,i)=>`
     <div class="order-card ${o.status}" style="animation-delay:${i*0.04}s">
-      <div class="order-num">
-        <span class="num">#${o.code||'—'}</span>
-        <span style="font-size:9px;color:var(--text3);">${timeAgo(o.time)}</span>
-      </div>
+      <div class="order-num"><span class="num">#${o.code?.slice(-3)||'—'}</span><span style="font-size:9px;color:var(--text3);">${timeAgo(o.time)}</span></div>
       <div class="order-info">
         <div class="order-top">
           <span class="order-name">${o.name}</span>
@@ -1166,15 +1154,14 @@ function renderOrders(){
         </div>
         <div class="order-meta">
           <span class="phone">📞 ${o.phone}</span>
-          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">💳 ${o.paymentMethod||'TNG'} · ${o.paymentStatus||''}</span>
+          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">💳 ${o.paymentMethod||'TNG'}</span>
         </div>
       </div>
       <div class="order-actions">
-        <div class="order-total">RM ${o.total?o.total.toFixed(2):'0.00'}</div>
+        <div class="order-total">RM ${(o.total||0).toFixed(2)}</div>
         ${actionButtons(o)}
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 function statusLabel(s){
@@ -1182,186 +1169,256 @@ function statusLabel(s){
 }
 
 function actionButtons(o){
-  const id = o.docId;
-  if(o.status==='new')        return `<button class="action-btn btn-accept" onclick="updateStatus('${id}','preparing')">✅ Accept & Prepare</button><button class="action-btn btn-reject" onclick="updateStatus('${id}','done')">✗ Reject</button>`;
-  if(o.status==='preparing')  return `<button class="action-btn btn-ready" onclick="updateStatus('${id}','ready')">✅ Food Ready</button>`;
-  if(o.status==='ready' && o.type==='delivery') return `<button class="action-btn btn-assign" onclick="openAssign('${id}','${o.name}','${o.address||''}')">🛵 Assign Rider</button>`;
-  if(o.status==='ready' && o.type==='pickup')   return `<button class="action-btn btn-done" onclick="updateStatus('${id}','done')">✅ Customer Picked Up</button>`;
+  const id=o.docId;
+  if(o.status==='new')       return `<button class="action-btn btn-accept" onclick="updateStatus('${id}','preparing')">✅ Accept & Prepare</button><button class="action-btn btn-reject" onclick="updateStatus('${id}','done')">✗ Reject</button>`;
+  if(o.status==='preparing') return `<button class="action-btn btn-ready" onclick="updateStatus('${id}','ready')">✅ Food Ready</button>`;
+  if(o.status==='ready'&&o.type==='delivery') return `<button class="action-btn btn-assign" onclick="openAssign('${id}','${o.name}','${o.address||''}')">🛵 Assign Rider</button>`;
+  if(o.status==='ready'&&o.type==='pickup')   return `<button class="action-btn btn-done" onclick="updateStatus('${id}','done')">✅ Customer Picked Up</button>`;
   if(o.status==='delivering') return `<button class="action-btn btn-done" onclick="updateStatus('${id}','done')">✅ Delivered</button>`;
   if(o.status==='done')       return `<span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">COMPLETED</span>`;
   return '';
 }
 
-// ═══════════════════════════════════════════
-//  UPDATE STATUS → FIRESTORE
-// ═══════════════════════════════════════════
-async function updateStatus(docId, newStatus){
-  try {
-    await updateDoc(doc(db,'orders',docId), { status: newStatus });
-    const msgs = {
-      preparing:'🍳 Preparing order!',
-      ready:'✅ Food is ready!',
-      delivering:'🛵 Rider on the way!',
-      done:'🎉 Order completed!',
-    };
+async function updateStatus(docId,newStatus){
+  try{
+    await updateDoc(doc(db,'orders',docId),{status:newStatus});
+    const msgs={preparing:'🍳 Preparing!',ready:'✅ Food ready!',delivering:'🛵 On the way!',done:'🎉 Completed!'};
     if(msgs[newStatus]) showToast(msgs[newStatus]);
-  } catch(e) {
-    showToast('❌ Update failed: '+e.message);
-  }
+  }catch(e){ showToast('❌ '+e.message); }
 }
-window.updateStatus = updateStatus;
+window.updateStatus=updateStatus;
 
-function filterOrders(filter, el){
-  currentFilter = filter;
+function filterOrders(filter,el){
+  currentFilter=filter;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   renderOrders();
 }
-window.filterOrders = filterOrders;
+window.filterOrders=filterOrders;
 
 function updateStats(){
-  document.getElementById('stat-new').textContent       = orders.filter(o=>o.status==='new').length;
-  document.getElementById('stat-preparing').textContent = orders.filter(o=>o.status==='preparing').length;
-  document.getElementById('stat-delivering').textContent= orders.filter(o=>o.status==='delivering').length;
-  const rev = orders.filter(o=>o.status==='done').reduce((s,o)=>s+(o.total||0),0);
-  document.getElementById('stat-revenue').textContent   = 'RM '+rev.toFixed(0);
+  document.getElementById('stat-new').textContent        = orders.filter(o=>o.status==='new').length;
+  document.getElementById('stat-preparing').textContent  = orders.filter(o=>o.status==='preparing').length;
+  document.getElementById('stat-delivering').textContent = orders.filter(o=>o.status==='delivering').length;
+  const rev=orders.filter(o=>o.status==='done').reduce((s,o)=>s+(o.total||0),0);
+  document.getElementById('stat-revenue').textContent    = 'RM '+rev.toFixed(0);
 }
-
 function updateNewBadge(){
-  const n = orders.filter(o=>o.status==='new').length;
-  const badge = document.getElementById('new-badge');
-  badge.textContent = n;
-  badge.style.display = n>0 ? 'inline-flex' : 'none';
-  const tb = document.getElementById('tab-all-badge');
-  tb.textContent = orders.length;
-  const tnb = document.getElementById('tab-new-badge');
-  tnb.textContent = n;
-  tnb.style.display = n>0 ? 'inline-flex' : 'none';
+  const n=orders.filter(o=>o.status==='new').length;
+  const b=document.getElementById('new-badge');
+  b.textContent=n; b.style.display=n>0?'inline-flex':'none';
+  document.getElementById('tab-all-badge').textContent=orders.length;
+  const nb=document.getElementById('tab-new-badge');
+  nb.textContent=n; nb.style.display=n>0?'inline-flex':'none';
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  ASSIGN RIDER
-// ═══════════════════════════════════════════
-function openAssign(docId, name, address){
-  assigningDocId   = docId;
-  selectedRiderId  = null;
-  document.getElementById('modal-order-info').textContent = `${name} · ${address||'Pickup'}`;
-  document.getElementById('rider-list').innerHTML = riders.map(r=>`
-    <div class="rider-item" id="ri-${r.id}" onclick="selectRider(${r.id})">
-      <div class="rider-avatar">🧑</div>
-      <div>
-        <div class="rider-name">${r.name}</div>
-        <div class="rider-info">${r.phone} · ${r.plate}</div>
-      </div>
-      <div class="rider-status-dot ${r.status==='busy'?'busy':''}"></div>
-      <span style="font-size:10px;font-family:'DM Mono',monospace;color:${r.status==='free'?'var(--matcha2)':'var(--amber)'};">${r.status.toUpperCase()}</span>
-    </div>`).join('');
+// ═══════════════════════════════════════════════════════
+function openAssign(docId,name,address){
+  assigningDocId=docId; selectedRiderId=null;
+  document.getElementById('modal-order-info').textContent=`${name} · ${address||'Pickup'}`;
+  const activeRiders=riders.filter(r=>r.status==='active');
+  document.getElementById('rider-list').innerHTML = activeRiders.length
+    ? activeRiders.map(r=>`
+        <div class="rider-item" id="ri-${r.docId}" onclick="selectRider('${r.docId}')">
+          <div class="rider-avatar">🧑</div>
+          <div><div class="rider-name">${r.name}</div><div class="rider-info">${r.phone} · ${r.wallet||'TNG'}: ${r.tngPhone||r.bankAccount||'—'}</div></div>
+          <div class="rider-status-dot"></div>
+          <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--matcha2);">ACTIVE</span>
+        </div>`).join('')
+    : `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No active riders available.<br>Approve riders in the Riders tab first.</div>`;
   document.getElementById('rider-modal').style.display='flex';
 }
-window.openAssign = openAssign;
+window.openAssign=openAssign;
 
 function selectRider(id){
-  selectedRiderId = id;
+  selectedRiderId=id;
   document.querySelectorAll('.rider-item').forEach(el=>el.classList.remove('selected'));
-  document.getElementById('ri-'+id).classList.add('selected');
+  document.getElementById('ri-'+id)?.classList.add('selected');
 }
-window.selectRider = selectRider;
+window.selectRider=selectRider;
 
 async function confirmAssign(){
-  if(!selectedRiderId){ showToast('⚠️ Please select a rider'); return; }
-  const rider = riders.find(r=>r.id===selectedRiderId);
-  try {
-    await updateDoc(doc(db,'orders',assigningDocId), { status:'delivering', rider: rider.name });
-    rider.status = 'busy';
-    rider.ordersToday++;
-    rider.earnings += 3.00;
+  if(!selectedRiderId){ showToast('⚠️ Select a rider first'); return; }
+  const rider=riders.find(r=>r.docId===selectedRiderId);
+  try{
+    await updateDoc(doc(db,'orders',assigningDocId),{status:'delivering',rider:rider.name});
     closeModal();
-    renderRiders();
     showToast(`🛵 ${rider.name} assigned!`);
-  } catch(e) {
-    showToast('❌ '+e.message);
-  }
+  }catch(e){ showToast('❌ '+e.message); }
 }
-window.confirmAssign = confirmAssign;
+window.confirmAssign=confirmAssign;
 
-function closeModal(){
-  document.getElementById('rider-modal').style.display='none';
-  assigningDocId=null; selectedRiderId=null;
-}
-window.closeModal = closeModal;
+function closeModal(){ document.getElementById('rider-modal').style.display='none'; assigningDocId=null; selectedRiderId=null; }
+window.closeModal=closeModal;
 
-// ═══════════════════════════════════════════
-//  RIDERS
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  RIDERS PAGE — from Firebase
+// ═══════════════════════════════════════════════════════
 function renderRiders(){
-  document.getElementById('rider-tbody').innerHTML = riders.map(r=>`
-    <tr>
-      <td><div style="display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;border-radius:50%;background:var(--matcha-dim);display:flex;align-items:center;justify-content:center;">🧑</div><b>${r.name}</b></div></td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);">${r.sid}</td>
-      <td style="color:var(--milo);font-family:'DM Mono',monospace;font-size:12px;">${r.phone}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;">${r.plate}</td>
-      <td><span class="rider-avail avail-${r.status==='free'?'free':r.status==='busy'?'busy':'off'}">${r.status==='free'?'● FREE':r.status==='busy'?'● BUSY':'● OFF'}</span></td>
-      <td style="font-weight:600;">${r.ordersToday}</td>
-      <td style="color:var(--matcha);font-weight:700;font-family:'DM Mono',monospace;">RM ${r.earnings.toFixed(2)}</td>
-      <td>
-        <button onclick="toggleRiderStatus(${r.id})" style="background:var(--bg4);border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer;">Toggle</button>
-        <button onclick="removeRider(${r.id})" style="background:transparent;border:1px solid var(--red-dim);color:var(--red);border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;margin-left:4px;">✕</button>
-      </td>
-    </tr>`).join('');
+  const wrap=document.getElementById('riders-list-wrap');
+  if(!riders.length){
+    wrap.innerHTML=`<div class="empty-state"><div class="e-icon">🛵</div><div class="e-title">No riders yet</div><div class="e-sub">Riders register through the Rider App.<br>Approve them here.</div></div>`;
+    return;
+  }
+
+  const statusColor={active:'var(--matcha2)',pending:'var(--amber)',suspended:'var(--red)'};
+  const statusBg   ={active:'var(--matcha-dim)',pending:'var(--amber-dim)',suspended:'var(--red-dim)'};
+
+  wrap.innerHTML=`<div class="rider-table-wrap"><table>
+    <thead><tr>
+      <th>Rider</th><th>Student ID</th><th>Age</th><th>Phone</th>
+      <th>Wallet</th><th>Today</th><th>Total Earned</th><th>Unpaid</th><th>Status</th><th>Action</th>
+    </tr></thead>
+    <tbody>
+      ${riders.map(r=>`<tr>
+        <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:32px;height:32px;border-radius:50%;background:var(--matcha-dim);display:flex;align-items:center;justify-content:center;">🧑</div><b>${r.name}</b></div></td>
+        <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);">${r.sid||'—'}</td>
+        <td style="font-size:12px;">${r.age||'—'}</td>
+        <td style="color:var(--milo);font-family:'DM Mono',monospace;font-size:12px;">${r.phone}</td>
+        <td style="font-size:12px;">
+          <div style="font-weight:600;">${r.wallet||'TNG'}</div>
+          <div style="color:var(--text3);font-size:11px;font-family:'DM Mono',monospace;">${r.tngPhone||r.bankAccount||'—'}</div>
+        </td>
+        <td style="font-weight:600;">RM ${(r.todayEarnings||0).toFixed(2)}</td>
+        <td style="color:var(--matcha);font-weight:700;font-family:'DM Mono',monospace;">RM ${(r.totalEarnings||0).toFixed(2)}</td>
+        <td style="color:${(r.unpaidEarnings||0)>0?'var(--amber)':'var(--text3)'};font-weight:700;font-family:'DM Mono',monospace;">RM ${(r.unpaidEarnings||0).toFixed(2)}</td>
+        <td><span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;font-family:'DM Mono',monospace;background:${statusBg[r.status||'pending']};color:${statusColor[r.status||'pending']};">${(r.status||'pending').toUpperCase()}</span></td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;min-width:160px;">
+          ${r.status==='pending'?`<button onclick="setRiderStatus('${r.docId}','active')" style="background:var(--matcha);border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;color:#fff;font-weight:700;">✅ Approve</button>`:''}
+          ${r.status==='active'?`<button onclick="setRiderStatus('${r.docId}','suspended')" style="background:var(--red-dim);border:1px solid var(--red-dim);border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;color:var(--red);">Suspend</button>`:''}
+          ${r.status==='suspended'?`<button onclick="setRiderStatus('${r.docId}','active')" style="background:var(--matcha-dim);border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;color:var(--matcha2);">Reactivate</button>`:''}
+        </td>
+      </tr>`).join('')}
+    </tbody>
+  </table></div>`;
 }
 
-function toggleRiderStatus(id){
-  const r = riders.find(x=>x.id===id);
-  if(!r) return;
-  r.status = r.status==='free'?'off':r.status==='off'?'free':'free';
-  renderRiders();
-  showToast(`${r.name} → ${r.status.toUpperCase()}`);
+async function setRiderStatus(docId, status){
+  try{
+    await updateDoc(doc(db,'riders',docId),{status});
+    showToast(status==='active'?'✅ Rider approved!':status==='suspended'?'🚫 Rider suspended':'♻️ Rider reactivated');
+  }catch(e){ showToast('❌ '+e.message); }
 }
-window.toggleRiderStatus = toggleRiderStatus;
+window.setRiderStatus=setRiderStatus;
 
-function removeRider(id){ riders=riders.filter(r=>r.id!==id); renderRiders(); showToast('Rider removed'); }
-window.removeRider = removeRider;
+// ═══════════════════════════════════════════════════════
+//  PAYROLL PAGE
+// ═══════════════════════════════════════════════════════
+function renderPayroll(){
+  const wrap=document.getElementById('payroll-wrap');
+  const activeRiders=riders.filter(r=>r.status==='active'||r.unpaidEarnings>0);
 
-function showAddRider(){ document.getElementById('add-rider-modal').style.display='flex'; }
-window.showAddRider = showAddRider;
-function closeAddRider(){ document.getElementById('add-rider-modal').style.display='none'; }
-window.closeAddRider = closeAddRider;
+  const totalUnpaid=riders.reduce((s,r)=>s+(r.unpaidEarnings||0),0);
 
-function saveRider(){
-  const name=document.getElementById('r-name').value.trim();
-  const sid=document.getElementById('r-sid').value.trim();
-  const phone=document.getElementById('r-phone').value.trim();
-  const plate=document.getElementById('r-plate').value.trim();
-  if(!name||!phone){showToast('⚠️ Fill in all fields');return;}
-  riders.push({id:Date.now(),name,sid,phone,plate,status:'free',ordersToday:0,earnings:0});
-  closeAddRider();
-  renderRiders();
-  showToast(`✅ ${name} added as Rider!`);
-  ['r-name','r-sid','r-phone','r-plate'].forEach(id=>document.getElementById(id).value='');
+  let html=`
+    <div style="background:linear-gradient(135deg,var(--matcha-dim),rgba(122,158,90,0.05));border:1px solid rgba(122,158,90,0.2);border-radius:var(--r);padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:16px;">
+      <div style="font-size:36px;">💰</div>
+      <div>
+        <div style="font-size:11px;color:var(--matcha);font-weight:700;letter-spacing:.1em;font-family:'DM Mono',monospace;">TOTAL UNPAID TO RIDERS</div>
+        <div style="font-size:32px;font-weight:700;color:var(--cream);">RM ${totalUnpaid.toFixed(2)}</div>
+        <div style="font-size:12px;color:var(--text2);">${riders.filter(r=>(r.unpaidEarnings||0)>0).length} riders awaiting payment</div>
+      </div>
+    </div>`;
+
+  if(!riders.length){
+    wrap.innerHTML=html+`<div class="empty-state"><div class="e-icon">🛵</div><div class="e-title">No riders yet</div></div>`;
+    return;
+  }
+
+  html += riders.map(r=>{
+    const unpaid=r.unpaidEarnings||0;
+    const payInfo = r.wallet==='TNG'
+      ? `Touch \'n Go → <b>${r.tngPhone||'—'}</b>`
+      : `DuitNow → <b>${r.bankName} ${r.bankAccount||'—'}</b>`;
+    return `
+    <div style="background:var(--card);border:1px solid ${unpaid>0?'rgba(122,158,90,0.25)':'var(--border)'};border-radius:var(--r);padding:20px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div style="width:44px;height:44px;border-radius:14px;background:var(--matcha-dim);display:flex;align-items:center;justify-content:center;font-size:20px;">🧑</div>
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:700;color:var(--cream);">${r.name}</div>
+          <div style="font-size:12px;color:var(--text2);">${r.sid||''} · ${r.phone}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:22px;font-weight:800;color:${unpaid>0?'var(--matcha)':'var(--text3)'};">RM ${unpaid.toFixed(2)}</div>
+          <div style="font-size:11px;color:var(--text3);">unpaid</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:16px;font-weight:700;color:var(--cream);">${r.totalOrders||0}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">TOTAL ORDERS</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:16px;font-weight:700;color:var(--cream);">RM ${(r.totalEarnings||0).toFixed(0)}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">TOTAL EARNED</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:16px;font-weight:700;color:var(--amber);">RM ${(r.todayEarnings||0).toFixed(0)}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">TODAY</div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:var(--text2);">
+        💳 Pay via: ${payInfo}
+      </div>
+
+      ${unpaid>0 ? `
+      <div style="display:flex;gap:8px;">
+        <a href="${r.wallet==='TNG'
+          ? 'https://wa.me/6'+r.tngPhone+'?text=Hi+'+encodeURIComponent(r.name)+',+here+is+your+payment+of+RM+'+unpaid.toFixed(2)+'+from+Soy+%26+Oden.+Thank+you!'
+          : '#'}"
+          target="_blank"
+          style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:12px;font-size:13px;font-weight:600;color:var(--text2);text-decoration:none;text-align:center;">
+          📲 WhatsApp Rider
+        </a>
+        <button onclick="markPaid('${r.docId}','${r.name}',${unpaid})"
+          style="flex:2;background:var(--matcha);border:none;border-radius:var(--r2);padding:12px;font-size:14px;font-weight:700;cursor:pointer;color:#fff;box-shadow:0 4px 16px rgba(122,158,90,0.3);">
+          ✅ Mark as Paid · RM ${unpaid.toFixed(2)}
+        </button>
+      </div>` : `
+      <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;font-size:13px;color:var(--text3);">
+        ✅ All paid up
+      </div>`}
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML=html;
 }
-window.saveRider = saveRider;
 
-// ═══════════════════════════════════════════
+async function markPaid(docId, name, amount){
+  if(!confirm(`Mark RM ${amount.toFixed(2)} as paid to ${name}?`)) return;
+  try{
+    await updateDoc(doc(db,'riders',docId),{
+      unpaidEarnings: 0,
+      lastPaidAt:     new Date().toISOString(),
+      lastPaidAmount: amount,
+    });
+    showToast(`✅ RM ${amount.toFixed(2)} marked as paid to ${name}!`);
+  }catch(e){ showToast('❌ '+e.message); }
+}
+window.markPaid=markPaid;
+
+// ═══════════════════════════════════════════════════════
 //  HISTORY
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function renderHistory(){
-  const done = orders.filter(o=>o.status==='done');
-  const rev  = done.reduce((s,o)=>s+(o.total||0),0);
+  const done=orders.filter(o=>o.status==='done');
+  const rev=done.reduce((s,o)=>s+(o.total||0),0);
   document.getElementById('h-orders').textContent  = done.length;
   document.getElementById('h-revenue').textContent = 'RM '+rev.toFixed(0);
   document.getElementById('h-avg').textContent     = done.length?'RM '+(rev/done.length).toFixed(2):'RM 0';
   const counts={};
   done.forEach(o=>(o.items||[]).forEach(it=>{ counts[it.name]=(counts[it.name]||0)+it.qty; }));
-  const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById('h-top').textContent = top?top[0].split(' ').slice(0,2).join(' '):'—';
-
-  if(done.length===0){
-    document.getElementById('history-container').innerHTML=`<div class="empty-state"><div class="e-icon">📊</div><div class="e-title">No completed orders yet</div></div>`;
-    return;
-  }
-  document.getElementById('history-container').innerHTML = done.map((o,i)=>`
+  const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('h-top').textContent=top?top[0].split(' ').slice(0,2).join(' '):'—';
+  const container=document.getElementById('history-container');
+  if(!done.length){ container.innerHTML=`<div class="empty-state"><div class="e-icon">📊</div><div class="e-title">No completed orders</div></div>`; return; }
+  container.innerHTML=done.map((o,i)=>`
     <div class="order-card done" style="animation-delay:${i*0.03}s">
-      <div class="order-num"><span class="num">${o.code}</span></div>
+      <div class="order-num"><span class="num">${o.code||'—'}</span></div>
       <div class="order-info">
         <div class="order-top">
           <span class="order-name">${o.name}</span>
@@ -1369,52 +1426,49 @@ function renderHistory(){
           <span class="order-status-badge status-done">✅ Done</span>
         </div>
         <div class="order-items">${(o.items||[]).map(it=>`<span>${it.emoji} ${it.name}</span> ×${it.qty}<br>`).join('')}</div>
-        <div class="order-meta"><span class="phone">📞 ${o.phone}</span><span class="time-ago">⏱ ${timeAgo(o.time)}</span></div>
+        <div class="order-meta"><span class="phone">📞 ${o.phone}</span><span>⏱ ${timeAgo(o.time)}</span></div>
       </div>
-      <div class="order-actions"><div class="order-total">RM ${o.total?o.total.toFixed(2):'0.00'}</div></div>
+      <div class="order-actions"><div class="order-total">RM ${(o.total||0).toFixed(2)}</div></div>
     </div>`).join('');
 }
-window.renderHistory = renderHistory;
+window.renderHistory=renderHistory;
 
 function filterHistory(f,el){
   document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active');
-  renderHistory();
+  el.classList.add('active'); renderHistory();
 }
-window.filterHistory = filterHistory;
+window.filterHistory=filterHistory;
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  MENU
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function renderMenu(){
-  document.getElementById('menu-grid').innerHTML = menus.map(m=>`
+  document.getElementById('menu-grid').innerHTML=menus.map(m=>`
     <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;display:flex;align-items:center;gap:14px;">
       <div style="width:52px;height:52px;border-radius:14px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:26px;">${m.emoji}</div>
-      <div style="flex:1;">
-        <div style="font-size:14px;font-weight:600;color:var(--cream);">${m.name}</div>
-        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">${m.cat}</div>
-      </div>
+      <div style="flex:1;"><div style="font-size:14px;font-weight:600;color:var(--cream);">${m.name}</div><div style="font-size:11px;color:var(--text3);">${m.cat}</div></div>
       <div style="font-size:16px;font-weight:700;color:var(--matcha);font-family:'DM Mono',monospace;">RM ${m.price.toFixed(2)}</div>
     </div>`).join('');
 }
 
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  TOAST
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 let toastTimer;
 function showToast(msg){
-  const t = document.getElementById('toast');
-  document.getElementById('toast-msg').textContent = msg;
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
   t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'),3000);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
 }
-window.showToast = showToast;
+window.showToast=showToast;
+window.addDemoOrder=function(){ showToast('ℹ️ Orders come from the customer app!'); };
 
-// Simulate order button (for testing)
-window.addDemoOrder = function(){
-  showToast('ℹ️ Orders come from the customer app now!');
-}
+// Remove old modal functions no longer needed
+window.showAddRider=function(){};
+window.closeAddRider=function(){};
+window.saveRider=function(){};
 </script>
 </body>
 </html>
