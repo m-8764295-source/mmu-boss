@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soy & Oden — Boss Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0F0E0C;
+  --bg2:#161410;
+  --bg3:#1E1B17;
+  --bg4:#252118;
+  --card:#1A1714;
+  --border:#2A2520;
+  --border2:#363028;
+  --matcha:#7A9E5A;
+  --matcha2:#9ABF72;
+  --matcha-dim:#3D5030;
+  --matcha-glow:rgba(122,158,90,0.15);
+  --milo:#C49A6C;
+  --milo-dim:#6B4E2A;
+  --cream:#F5EDE0;
+  --cream2:#D4C4B0;
+  --text:#EDE8E0;
+  --text2:#A09080;
+  --text3:#6B5D50;
+  --red:#E8654A;
+  --red-dim:#5C2A1E;
+  --blue:#5B8FA6;
+  --blue-dim:#1E3A47;
+  --amber:#D4A853;
+  --amber-dim:#5C3F10;
+  --shadow:0 4px 32px rgba(0,0,0,0.4);
+  --r:14px;
+  --r2:10px;
+}
+
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── LOGIN ── */
+#login-screen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:radial-gradient(ellipse at 30% 40%,rgba(122,158,90,0.08) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 80%,rgba(196,154,108,0.06) 0%,transparent 50%),
+             var(--bg);
+}
+
+.login-card{
+  width:360px;
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:24px;
+  padding:40px 36px;
+  box-shadow:var(--shadow);
+  animation:fadeUp .5s ease;
+}
+
+.login-logo{
+  text-align:center;
+  margin-bottom:28px;
+}
+
+.login-logo .brand{
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--matcha);
+  margin-bottom:6px;
+}
+
+.login-logo .title{
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  font-size:28px;
+  color:var(--cream);
+}
+
+.login-logo .sub{
+  font-size:11px;
+  color:var(--text3);
+  margin-top:4px;
+  font-family:'DM Mono',monospace;
+  letter-spacing:.06em;
+}
+
+.field{
+  margin-bottom:14px;
+}
+
+.field label{
+  display:block;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text2);
+  margin-bottom:6px;
+}
+
+.field input{
+  width:100%;
+  background:var(--bg3);
+  border:1.5px solid var(--border2);
+  border-radius:var(--r2);
+  padding:13px 16px;
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  color:var(--text);
+  outline:none;
+  transition:border-color .2s;
+}
+
+.field input:focus{border-color:var(--matcha);}
+.field input::placeholder{color:var(--text3);}
+
+.login-btn{
+  width:100%;
+  background:var(--matcha);
+  color:#fff;
+  border:none;
+  border-radius:var(--r2);
+  padding:15px;
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  margin-top:6px;
+  transition:background .15s,transform .15s;
+  box-shadow:0 6px 24px rgba(122,158,90,0.3);
+}
+.login-btn:hover{background:var(--matcha2);}
+.login-btn:active{transform:scale(.98);}
+
+.login-err{
+  color:var(--red);
+  font-size:12px;
+  text-align:center;
+  margin-top:10px;
+  display:none;
+}
+
+/* ── DASHBOARD ── */
+#dashboard{display:none;}
+
+/* Sidebar */
+.layout{display:flex;min-height:100vh;}
+
+.sidebar{
+  width:220px;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  padding:24px 0;
+  position:fixed;
+  top:0;left:0;bottom:0;
+  z-index:100;
+}
+
+.sidebar-brand{
+  padding:0 20px 24px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:16px;
+}
+
+.sidebar-brand .s-name{
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  font-size:20px;
+  color:var(--cream);
+}
+
+.sidebar-brand .s-role{
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--matcha);
+  font-family:'DM Mono',monospace;
+}
+
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 20px;
+  cursor:pointer;
+  border-radius:0;
+  transition:background .15s;
+  font-size:13px;
+  font-weight:500;
+  color:var(--text2);
+  border-left:2px solid transparent;
+  margin:1px 0;
+  position:relative;
+}
+
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+
+.nav-item.active{
+  background:var(--bg3);
+  color:var(--matcha);
+  border-left-color:var(--matcha);
+}
+
+.nav-icon{font-size:16px;width:20px;text-align:center;}
+
+.nav-badge{
+  position:absolute;
+  right:14px;
+  background:var(--red);
+  color:#fff;
+  font-size:9px;
+  font-weight:700;
+  padding:2px 6px;
+  border-radius:100px;
+  font-family:'DM Mono',monospace;
+}
+
+.sidebar-bottom{
+  margin-top:auto;
+  padding:16px 20px 0;
+  border-top:1px solid var(--border);
+}
+
+.logout-btn{
+  width:100%;
+  background:transparent;
+  border:1px solid var(--border2);
+  border-radius:var(--r2);
+  padding:9px;
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  color:var(--text2);
+  cursor:pointer;
+  transition:all .15s;
+}
+.logout-btn:hover{border-color:var(--red);color:var(--red);}
+
+/* Main content */
+.main{
+  margin-left:220px;
+  flex:1;
+  padding:28px 32px;
+  min-height:100vh;
+}
+
+/* Topbar */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:28px;
+}
+
+.topbar-title{
+  font-size:22px;
+  font-weight:700;
+  color:var(--cream);
+}
+
+.topbar-title span{
+  font-family:'Playfair Display',serif;
+  font-style:italic;
+  color:var(--matcha);
+  font-weight:400;
+}
+
+.topbar-right{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.live-pill{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:100px;
+  padding:6px 14px;
+  font-size:12px;
+  font-weight:600;
+  color:var(--matcha);
+  font-family:'DM Mono',monospace;
+}
+
+.live-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--matcha);
+  animation:pulse 2s infinite;
+}
+
+.time-display{
+  font-family:'DM Mono',monospace;
+  font-size:13px;
+  color:var(--text2);
+}
+
+/* Stat cards */
+.stats-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin-bottom:28px;
+}
+
+.stat-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:18px 20px;
+  animation:fadeUp .4s ease both;
+}
+
+.stat-label{
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--text3);
+  margin-bottom:8px;
+  font-family:'DM Mono',monospace;
+}
+
+.stat-val{
+  font-size:28px;
+  font-weight:700;
+  color:var(--cream);
+  line-height:1;
+  margin-bottom:4px;
+}
+
+.stat-sub{
+  font-size:11px;
+  color:var(--text2);
+}
+
+.stat-card.green .stat-val{color:var(--matcha);}
+.stat-card.amber .stat-val{color:var(--amber);}
+.stat-card.red .stat-val{color:var(--red);}
+.stat-card.blue .stat-val{color:var(--blue);}
+
+/* Tabs */
+.tabs{
+  display:flex;
+  gap:4px;
+  margin-bottom:20px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  padding:4px;
+  width:fit-content;
+}
+
+.tab{
+  padding:8px 18px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .15s;
+  color:var(--text2);
+  position:relative;
+}
+
+.tab.active{
+  background:var(--bg4);
+  color:var(--matcha);
+}
+
+.tab .t-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:16px;height:16px;
+  border-radius:50%;
+  background:var(--red);
+  color:#fff;
+  font-size:9px;
+  font-weight:700;
+  margin-left:5px;
+  vertical-align:middle;
+}
+
+/* Orders */
+.orders-grid{
+  display:grid;
+  gap:12px;
+}
+
+.order-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:20px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:16px;
+  align-items:start;
+  animation:fadeUp .3s ease both;
+  transition:border-color .2s;
+}
+
+.order-card:hover{border-color:var(--border2);}
+
+.order-card.new{border-left:3px solid var(--red);}
+.order-card.preparing{border-left:3px solid var(--amber);}
+.order-card.ready{border-left:3px solid var(--matcha);}
+.order-card.delivering{border-left:3px solid var(--blue);}
+.order-card.done{border-left:3px solid var(--text3);opacity:.65;}
+
+.order-num{
+  font-family:'DM Mono',monospace;
+  font-size:11px;
+  font-weight:500;
+  color:var(--text3);
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:6px 10px;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.order-num .num{
+  font-size:18px;
+  font-weight:700;
+  color:var(--cream);
+  display:block;
+  line-height:1.2;
+}
+
+.order-info{}
+
+.order-top{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:6px;
+  flex-wrap:wrap;
+}
+
+.order-name{
+  font-size:15px;
+  font-weight:700;
+  color:var(--cream);
+}
+
+.order-type-badge{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.06em;
+  padding:3px 8px;
+  border-radius:100px;
+  font-family:'DM Mono',monospace;
+}
+
+.badge-pickup{background:var(--matcha-dim);color:var(--matcha2);}
+.badge-delivery{background:var(--blue-dim);color:var(--blue);}
+
+.order-status-badge{
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.05em;
+  padding:3px 10px;
+  border-radius:100px;
+  font-family:'DM Mono',monospace;
+}
+
+.status-new{background:var(--red-dim);color:var(--red);}
+.status-preparing{background:var(--amber-dim);color:var(--amber);}
+.status-ready{background:var(--matcha-dim);color:var(--matcha2);}
+.status-delivering{background:var(--blue-dim);color:var(--blue);}
+.status-done{background:var(--bg3);color:var(--text3);}
+
+.order-items{
+  font-size:12px;
+  color:var(--text2);
+  line-height:1.7;
+  margin-bottom:8px;
+}
+
+.order-items span{color:var(--text);font-weight:500;}
+
+.order-meta{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  font-size:11px;
+  color:var(--text3);
+  font-family:'DM Mono',monospace;
+}
+
+.order-meta .phone{color:var(--milo);}
+.order-meta .time-ago{color:var(--text3);}
+
+.order-actions{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  align-items:flex-end;
+}
+
+.order-total{
+  font-size:18px;
+  font-weight:700;
+  color:var(--matcha);
+  font-family:'DM Mono',monospace;
+  text-align:right;
+}
+
+.action-btn{
+  border:none;
+  border-radius:var(--r2);
+  padding:9px 16px;
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .15s;
+  white-space:nowrap;
+}
+
+.btn-accept{background:var(--matcha);color:#fff;box-shadow:0 4px 16px rgba(122,158,90,0.3);}
+.btn-accept:hover{background:var(--matcha2);}
+
+.btn-prepare{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(212,168,83,0.2);}
+.btn-prepare:hover{background:rgba(212,168,83,0.2);}
+
+.btn-ready{background:var(--matcha-dim);color:var(--matcha2);border:1px solid rgba(122,158,90,0.2);}
+.btn-ready:hover{background:rgba(122,158,90,0.2);}
+
+.btn-assign{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(91,143,166,0.2);}
+.btn-assign:hover{background:rgba(91,143,166,0.2);}
+
+.btn-done{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
+.btn-done:hover{border-color:var(--border2);}
+
+.btn-reject{background:transparent;color:var(--red);border:1px solid var(--red-dim);font-size:11px;padding:6px 12px;}
+.btn-reject:hover{background:var(--red-dim);}
+
+/* Rider assign modal */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.7);
+  backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:999;
+  display:none;
+}
+
+.modal-box{
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  padding:28px;
+  width:380px;
+  box-shadow:var(--shadow);
+  animation:scaleIn .2s ease;
+}
+
+.modal-title{
+  font-size:17px;
+  font-weight:700;
+  color:var(--cream);
+  margin-bottom:4px;
+}
+
+.modal-sub{
+  font-size:12px;
+  color:var(--text2);
+  margin-bottom:20px;
+}
+
+.rider-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+
+.rider-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  background:var(--bg4);
+  border:1.5px solid var(--border);
+  border-radius:var(--r2);
+  padding:12px 14px;
+  cursor:pointer;
+  transition:all .15s;
+}
+
+.rider-item:hover,.rider-item.selected{
+  border-color:var(--matcha);
+  background:var(--matcha-glow);
+}
+
+.rider-avatar{
+  width:36px;height:36px;
+  border-radius:50%;
+  background:var(--matcha-dim);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  flex-shrink:0;
+}
+
+.rider-name{font-size:14px;font-weight:600;color:var(--cream);}
+.rider-info{font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;}
+
+.rider-status-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--matcha);
+  margin-left:auto;
+  flex-shrink:0;
+}
+
+.rider-status-dot.busy{background:var(--amber);}
+
+.modal-btns{display:flex;gap:8px;}
+
+.modal-confirm{
+  flex:1;background:var(--matcha);color:#fff;border:none;
+  border-radius:var(--r2);padding:12px;font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;
+  transition:background .15s;
+}
+.modal-confirm:hover{background:var(--matcha2);}
+
+.modal-cancel{
+  background:transparent;color:var(--text2);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:12px 18px;font-family:'DM Sans',sans-serif;
+  font-size:14px;cursor:pointer;transition:all .15s;
+}
+.modal-cancel:hover{border-color:var(--border2);color:var(--text);}
+
+/* Rider page */
+.page{display:none;}
+.page.active{display:block;}
+
+.rider-table-wrap{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  overflow:hidden;
+}
+
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--bg3);border-bottom:1px solid var(--border);}
+th{
+  padding:12px 16px;
+  text-align:left;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--text3);
+  font-family:'DM Mono',monospace;
+}
+
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--bg3);}
+td{padding:14px 16px;font-size:13px;color:var(--text);}
+
+.rider-avail{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:600;
+  padding:3px 10px;border-radius:100px;
+  font-family:'DM Mono',monospace;
+}
+
+.avail-free{background:var(--matcha-dim);color:var(--matcha2);}
+.avail-busy{background:var(--amber-dim);color:var(--amber);}
+.avail-off{background:var(--bg4);color:var(--text3);}
+
+.add-rider-btn{
+  background:var(--matcha);color:#fff;border:none;
+  border-radius:var(--r2);padding:10px 20px;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;margin-bottom:16px;
+  transition:background .15s;
+}
+.add-rider-btn:hover{background:var(--matcha2);}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:28px;right:28px;
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:var(--r2);
+  padding:14px 20px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--cream);
+  box-shadow:var(--shadow);
+  z-index:9999;
+  display:none;
+  animation:slideIn .3s ease;
+}
+
+.toast.show{display:block;}
+.toast .t-icon{margin-right:8px;}
+
+/* History page */
+.history-filter{
+  display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;
+}
+
+.filter-chip{
+  padding:6px 14px;border-radius:100px;
+  font-size:12px;font-weight:600;cursor:pointer;
+  border:1px solid var(--border2);
+  background:transparent;color:var(--text2);
+  transition:all .15s;
+}
+.filter-chip.active{background:var(--matcha-dim);color:var(--matcha2);border-color:var(--matcha-dim);}
+
+/* Empty state */
+.empty-state{
+  text-align:center;padding:60px 24px;
+  color:var(--text3);
+}
+.empty-state .e-icon{font-size:40px;margin-bottom:12px;}
+.empty-state .e-title{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:4px;}
+.empty-state .e-sub{font-size:12px;}
+
+/* New order flash */
+@keyframes newFlash{
+  0%{box-shadow:0 0 0 0 rgba(232,101,74,0.5);}
+  70%{box-shadow:0 0 0 12px rgba(232,101,74,0);}
+  100%{box-shadow:0 0 0 0 rgba(232,101,74,0);}
+}
+.order-card.new{animation:fadeUp .3s ease both,newFlash 1.5s ease 0.3s;}
+
+/* Animations */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px);}
+  to{opacity:1;transform:translateY(0);}
+}
+@keyframes scaleIn{
+  from{opacity:0;transform:scale(.95);}
+  to{opacity:1;transform:scale(1);}
+}
+@keyframes pulse{
+  0%,100%{opacity:1;}
+  50%{opacity:.4;}
+}
+@keyframes slideIn{
+  from{opacity:0;transform:translateY(8px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* Add rider modal */
+.add-rider-modal{display:none;}
+.add-rider-modal.show{display:flex;}
+</style>
+</head>
+<body>
+
+<!-- ====== LOGIN ====== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="brand">✦ Boss Panel</div>
+      <div class="title">Soy & Oden</div>
+      <div class="sub">ORDER MANAGEMENT SYSTEM</div>
+    </div>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="boss" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••" id="login-pass">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Login →</button>
+    <div class="login-err" id="login-err">❌ Wrong username or password</div>
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text3);">Default: boss / soyoden2024</div>
+  </div>
+</div>
+
+<!-- ====== DASHBOARD ====== -->
+<div id="dashboard">
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <div class="s-name">Soy & Oden</div>
+        <div class="s-role">BOSS DASHBOARD</div>
+      </div>
+
+      <div class="nav-item active" onclick="showPage('orders',this)">
+        <span class="nav-icon">📋</span> Orders
+        <span class="nav-badge" id="new-badge">0</span>
+      </div>
+      <div class="nav-item" onclick="showPage('riders',this)">
+        <span class="nav-icon">🛵</span> Riders
+      </div>
+      <div class="nav-item" onclick="showPage('history',this)">
+        <span class="nav-icon">📊</span> History
+      </div>
+      <div class="nav-item" onclick="showPage('menu',this)">
+        <span class="nav-icon">🥛</span> Menu
+      </div>
+
+      <div class="sidebar-bottom">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;font-family:'DM Mono',monospace;">
+          Logged in as <span style="color:var(--matcha);">boss</span>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+
+      <!-- ── ORDERS PAGE ── -->
+      <div class="page active" id="page-orders">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title">Live <span>Orders</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;">Real-time order management</div>
+          </div>
+          <div class="topbar-right">
+            <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+            <div class="time-display" id="clock">--:--:--</div>
+            <button onclick="addDemoOrder()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:var(--r2);padding:8px 14px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">+ Simulate Order</button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card red" style="animation-delay:.05s">
+            <div class="stat-label">New Orders</div>
+            <div class="stat-val" id="stat-new">0</div>
+            <div class="stat-sub">Waiting acceptance</div>
+          </div>
+          <div class="stat-card amber" style="animation-delay:.1s">
+            <div class="stat-label">Preparing</div>
+            <div class="stat-val" id="stat-preparing">0</div>
+            <div class="stat-sub">In the kitchen</div>
+          </div>
+          <div class="stat-card blue" style="animation-delay:.15s">
+            <div class="stat-label">Delivering</div>
+            <div class="stat-val" id="stat-delivering">0</div>
+            <div class="stat-sub">On the way</div>
+          </div>
+          <div class="stat-card green" style="animation-delay:.2s">
+            <div class="stat-label">Today Revenue</div>
+            <div class="stat-val" id="stat-revenue">RM 0</div>
+            <div class="stat-sub">Completed orders</div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <div class="tab active" onclick="filterOrders('all',this)">All <span class="t-badge" id="tab-all-badge">0</span></div>
+          <div class="tab" onclick="filterOrders('new',this)">New <span class="t-badge" id="tab-new-badge" style="display:none">0</span></div>
+          <div class="tab" onclick="filterOrders('preparing',this)">Preparing</div>
+          <div class="tab" onclick="filterOrders('ready',this)">Ready</div>
+          <div class="tab" onclick="filterOrders('delivering',this)">Delivering</div>
+          <div class="tab" onclick="filterOrders('done',this)">Done</div>
+        </div>
+
+        <div class="orders-grid" id="orders-container">
+          <div class="empty-state">
+            <div class="e-icon">🛒</div>
+            <div class="e-title">No orders yet</div>
+            <div class="e-sub">Click "Simulate Order" to test the system</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RIDERS PAGE ── -->
+      <div class="page" id="page-riders">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title">🛵 <span>Riders</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;">Manage your delivery team</div>
+          </div>
+        </div>
+
+        <button class="add-rider-btn" onclick="showAddRider()">+ Add New Rider</button>
+
+        <div class="rider-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Rider</th>
+                <th>Student ID</th>
+                <th>Phone</th>
+                <th>Vehicle</th>
+                <th>Status</th>
+                <th>Orders Today</th>
+                <th>Earnings</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="rider-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── HISTORY PAGE ── -->
+      <div class="page" id="page-history">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title">📊 <span>History</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;">All completed orders</div>
+          </div>
+        </div>
+
+        <div class="history-filter">
+          <div class="filter-chip active" onclick="filterHistory('today',this)">Today</div>
+          <div class="filter-chip" onclick="filterHistory('week',this)">This Week</div>
+          <div class="filter-chip" onclick="filterHistory('all',this)">All Time</div>
+        </div>
+
+        <div class="stats-row" style="margin-bottom:20px;">
+          <div class="stat-card green">
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-val" id="h-revenue">RM 0</div>
+            <div class="stat-sub">All completed</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-label">Total Orders</div>
+            <div class="stat-val" id="h-orders">0</div>
+            <div class="stat-sub">Completed</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-label">Avg Order Value</div>
+            <div class="stat-val" id="h-avg">RM 0</div>
+            <div class="stat-sub">Per order</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Top Item</div>
+            <div class="stat-val" style="font-size:18px;" id="h-top">—</div>
+            <div class="stat-sub">Most ordered</div>
+          </div>
+        </div>
+
+        <div class="orders-grid" id="history-container">
+          <div class="empty-state">
+            <div class="e-icon">📊</div>
+            <div class="e-title">No history yet</div>
+            <div class="e-sub">Complete some orders first</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MENU PAGE ── -->
+      <div class="page" id="page-menu">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title">🥛 <span>Menu</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;">Manage products & pricing</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" id="menu-grid"></div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /dashboard -->
+
+<!-- ── ASSIGN RIDER MODAL ── -->
+<div class="modal-overlay" id="rider-modal">
+  <div class="modal-box">
+    <div class="modal-title">🛵 Assign Rider</div>
+    <div class="modal-sub" id="modal-order-info">Order #SOD-001 • Delivery to Block A</div>
+    <div class="rider-list" id="rider-list"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-confirm" onclick="confirmAssign()">Assign →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD RIDER MODAL ── -->
+<div class="modal-overlay add-rider-modal" id="add-rider-modal">
+  <div class="modal-box">
+    <div class="modal-title">+ Add New Rider</div>
+    <div class="modal-sub">Student registration for delivery</div>
+    <div class="field"><label>Full Name</label><input type="text" id="r-name" placeholder="Ahmad Hafiz"></div>
+    <div class="field"><label>Student ID</label><input type="text" id="r-sid" placeholder="2021-12345"></div>
+    <div class="field"><label>Phone</label><input type="text" id="r-phone" placeholder="012-345 6789"></div>
+    <div class="field"><label>Vehicle Plate</label><input type="text" id="r-plate" placeholder="WXY 1234"></div>
+    <div class="modal-btns" style="margin-top:8px;">
+      <button class="modal-cancel" onclick="closeAddRider()">Cancel</button>
+      <button class="modal-confirm" onclick="saveRider()">Add Rider →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><span class="t-icon">✅</span><span id="toast-msg">Done!</span></div>
+
+<script type="module">
+// ═══════════════════════════════════════════
+//  FIREBASE SETUP
+// ═══════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, onSnapshot, updateDoc, query, orderBy, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCkFmMpScduIj1493VWQdDCOAaTUWnWEbk",
+  authDomain: "mmu-delivery-a4919.firebaseapp.com",
+  projectId: "mmu-delivery-a4919",
+  storageBucket: "mmu-delivery-a4919.firebasestorage.app",
+  messagingSenderId: "945529333130",
+  appId: "1:945529333130:web:915bfd830b44de4e19d473"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ═══════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════
+const CREDS = {user:'boss', pass:'soyoden2024'};
+let orders = [];
+let riders = [
+  {id:1,name:'Ahmad Hafiz',sid:'2021-10234',phone:'012-345 6789',plate:'WXY 1234',status:'free',ordersToday:0,earnings:0},
+  {id:2,name:'Nurul Ain',  sid:'2022-20891',phone:'011-234 5678',plate:'VJK 5678',status:'free',ordersToday:0,earnings:0},
+  {id:3,name:'Rizwan Akmal',sid:'2021-33120',phone:'019-876 5432',plate:'BJK 9012',status:'free',ordersToday:0,earnings:0},
+];
+const menus = [
+  {emoji:'🍵',name:'Matcha Soy Milk',   price:7.50,cat:'Soy Milk'},
+  {emoji:'🥛',name:'Classic Soy Milk',  price:5.50,cat:'Soy Milk'},
+  {emoji:'🍫',name:'Milo Soy Milk',     price:7.00,cat:'Soy Milk'},
+  {emoji:'🫐',name:'Butterfly Pea Soy', price:8.00,cat:'Soy Milk'},
+  {emoji:'☕',name:'Coffee Soy Milk',   price:8.50,cat:'Soy Milk'},
+  {emoji:'🍢',name:'Oden Set',          price:12.00,cat:'Oden'},
+];
+let currentFilter  = 'all';
+let assigningDocId = null;
+let selectedRiderId = null;
+
+// ═══════════════════════════════════════════
+//  LOGIN
+// ═══════════════════════════════════════════
+function doLogin(){
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value.trim();
+  const err = document.getElementById('login-err');
+  if(u===CREDS.user && p===CREDS.pass){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    initDashboard();
+  } else {
+    err.style.display='block';
+    setTimeout(()=>err.style.display='none',3000);
+  }
+}
+window.doLogin = doLogin;
+document.addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+
+function doLogout(){
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+}
+window.doLogout = doLogout;
+
+// ═══════════════════════════════════════════
+//  INIT — listen to Firestore in realtime
+// ═══════════════════════════════════════════
+function initDashboard(){
+  startClock();
+  renderRiders();
+  renderMenu();
+
+  // Realtime listener — fires whenever ANY order changes
+  const q = query(collection(db,'orders'), orderBy('timestamp','desc'));
+  onSnapshot(q, (snapshot) => {
+    orders = [];
+    snapshot.forEach(docSnap => {
+      const d = docSnap.data();
+      orders.push({
+        ...d,
+        docId: docSnap.id,
+        // Firestore timestamp → JS Date
+        time: d.timestamp ? d.timestamp.toDate() : new Date(),
+      });
+    });
+    renderOrders();
+    updateStats();
+    updateNewBadge();
+    showToast('🔄 Orders synced');
+  });
+}
+
+function startClock(){
+  const tick = () => {
+    document.getElementById('clock').textContent =
+      new Date().toLocaleTimeString('en-MY',{hour12:false});
+  };
+  tick(); setInterval(tick,1000);
+}
+
+// ═══════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════
+function showPage(name, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  el.classList.add('active');
+  if(name==='history') renderHistory();
+}
+window.showPage = showPage;
+
+// ═══════════════════════════════════════════
+//  RENDER ORDERS
+// ═══════════════════════════════════════════
+function timeAgo(date){
+  if(!date) return '';
+  const diff = Math.floor((new Date()-date)/1000);
+  if(diff<60) return diff+'s ago';
+  if(diff<3600) return Math.floor(diff/60)+'m ago';
+  return Math.floor(diff/3600)+'h ago';
+}
+
+function renderOrders(){
+  const container = document.getElementById('orders-container');
+  const filtered  = currentFilter==='all' ? orders : orders.filter(o=>o.status===currentFilter);
+  if(filtered.length===0){
+    container.innerHTML=`<div class="empty-state"><div class="e-icon">${currentFilter==='done'?'🎉':'🛒'}</div><div class="e-title">No ${currentFilter==='all'?'':currentFilter} orders</div><div class="e-sub">Waiting for new orders from customers</div></div>`;
+    return;
+  }
+  container.innerHTML = filtered.map((o,i)=>`
+    <div class="order-card ${o.status}" style="animation-delay:${i*0.04}s">
+      <div class="order-num">
+        <span class="num">#${o.code||'—'}</span>
+        <span style="font-size:9px;color:var(--text3);">${timeAgo(o.time)}</span>
+      </div>
+      <div class="order-info">
+        <div class="order-top">
+          <span class="order-name">${o.name}</span>
+          <span class="order-type-badge ${o.type==='delivery'?'badge-delivery':'badge-pickup'}">${o.type==='delivery'?'🛵 Delivery':'🛍 Pick Up'}</span>
+          <span class="order-status-badge status-${o.status}">${statusLabel(o.status)}</span>
+          ${o.rider?`<span style="font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;">🛵 ${o.rider}</span>`:''}
+        </div>
+        <div class="order-items">
+          ${(o.items||[]).map(it=>`<span>${it.emoji} ${it.name}</span> ×${it.qty} <span style="color:var(--text3);font-size:11px;">(${it.custom})</span><br>`).join('')}
+          ${o.address?`<span style="color:var(--blue);font-size:11px;">📍 ${o.address}</span>`:''}
+        </div>
+        <div class="order-meta">
+          <span class="phone">📞 ${o.phone}</span>
+          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">💳 ${o.paymentMethod||'TNG'} · ${o.paymentStatus||''}</span>
+        </div>
+      </div>
+      <div class="order-actions">
+        <div class="order-total">RM ${o.total?o.total.toFixed(2):'0.00'}</div>
+        ${actionButtons(o)}
+      </div>
+    </div>
+  `).join('');
+}
+
+function statusLabel(s){
+  return {new:'🔴 New',preparing:'🟡 Preparing',ready:'🟢 Ready',delivering:'🔵 Delivering',done:'✅ Done'}[s]||s;
+}
+
+function actionButtons(o){
+  const id = o.docId;
+  if(o.status==='new')        return `<button class="action-btn btn-accept" onclick="updateStatus('${id}','preparing')">✅ Accept & Prepare</button><button class="action-btn btn-reject" onclick="updateStatus('${id}','done')">✗ Reject</button>`;
+  if(o.status==='preparing')  return `<button class="action-btn btn-ready" onclick="updateStatus('${id}','ready')">✅ Food Ready</button>`;
+  if(o.status==='ready' && o.type==='delivery') return `<button class="action-btn btn-assign" onclick="openAssign('${id}','${o.name}','${o.address||''}')">🛵 Assign Rider</button>`;
+  if(o.status==='ready' && o.type==='pickup')   return `<button class="action-btn btn-done" onclick="updateStatus('${id}','done')">✅ Customer Picked Up</button>`;
+  if(o.status==='delivering') return `<button class="action-btn btn-done" onclick="updateStatus('${id}','done')">✅ Delivered</button>`;
+  if(o.status==='done')       return `<span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">COMPLETED</span>`;
+  return '';
+}
+
+// ═══════════════════════════════════════════
+//  UPDATE STATUS → FIRESTORE
+// ═══════════════════════════════════════════
+async function updateStatus(docId, newStatus){
+  try {
+    await updateDoc(doc(db,'orders',docId), { status: newStatus });
+    const msgs = {
+      preparing:'🍳 Preparing order!',
+      ready:'✅ Food is ready!',
+      delivering:'🛵 Rider on the way!',
+      done:'🎉 Order completed!',
+    };
+    if(msgs[newStatus]) showToast(msgs[newStatus]);
+  } catch(e) {
+    showToast('❌ Update failed: '+e.message);
+  }
+}
+window.updateStatus = updateStatus;
+
+function filterOrders(filter, el){
+  currentFilter = filter;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderOrders();
+}
+window.filterOrders = filterOrders;
+
+function updateStats(){
+  document.getElementById('stat-new').textContent       = orders.filter(o=>o.status==='new').length;
+  document.getElementById('stat-preparing').textContent = orders.filter(o=>o.status==='preparing').length;
+  document.getElementById('stat-delivering').textContent= orders.filter(o=>o.status==='delivering').length;
+  const rev = orders.filter(o=>o.status==='done').reduce((s,o)=>s+(o.total||0),0);
+  document.getElementById('stat-revenue').textContent   = 'RM '+rev.toFixed(0);
+}
+
+function updateNewBadge(){
+  const n = orders.filter(o=>o.status==='new').length;
+  const badge = document.getElementById('new-badge');
+  badge.textContent = n;
+  badge.style.display = n>0 ? 'inline-flex' : 'none';
+  const tb = document.getElementById('tab-all-badge');
+  tb.textContent = orders.length;
+  const tnb = document.getElementById('tab-new-badge');
+  tnb.textContent = n;
+  tnb.style.display = n>0 ? 'inline-flex' : 'none';
+}
+
+// ═══════════════════════════════════════════
+//  ASSIGN RIDER
+// ═══════════════════════════════════════════
+function openAssign(docId, name, address){
+  assigningDocId   = docId;
+  selectedRiderId  = null;
+  document.getElementById('modal-order-info').textContent = `${name} · ${address||'Pickup'}`;
+  document.getElementById('rider-list').innerHTML = riders.map(r=>`
+    <div class="rider-item" id="ri-${r.id}" onclick="selectRider(${r.id})">
+      <div class="rider-avatar">🧑</div>
+      <div>
+        <div class="rider-name">${r.name}</div>
+        <div class="rider-info">${r.phone} · ${r.plate}</div>
+      </div>
+      <div class="rider-status-dot ${r.status==='busy'?'busy':''}"></div>
+      <span style="font-size:10px;font-family:'DM Mono',monospace;color:${r.status==='free'?'var(--matcha2)':'var(--amber)'};">${r.status.toUpperCase()}</span>
+    </div>`).join('');
+  document.getElementById('rider-modal').style.display='flex';
+}
+window.openAssign = openAssign;
+
+function selectRider(id){
+  selectedRiderId = id;
+  document.querySelectorAll('.rider-item').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('ri-'+id).classList.add('selected');
+}
+window.selectRider = selectRider;
+
+async function confirmAssign(){
+  if(!selectedRiderId){ showToast('⚠️ Please select a rider'); return; }
+  const rider = riders.find(r=>r.id===selectedRiderId);
+  try {
+    await updateDoc(doc(db,'orders',assigningDocId), { status:'delivering', rider: rider.name });
+    rider.status = 'busy';
+    rider.ordersToday++;
+    rider.earnings += 3.00;
+    closeModal();
+    renderRiders();
+    showToast(`🛵 ${rider.name} assigned!`);
+  } catch(e) {
+    showToast('❌ '+e.message);
+  }
+}
+window.confirmAssign = confirmAssign;
+
+function closeModal(){
+  document.getElementById('rider-modal').style.display='none';
+  assigningDocId=null; selectedRiderId=null;
+}
+window.closeModal = closeModal;
+
+// ═══════════════════════════════════════════
+//  RIDERS
+// ═══════════════════════════════════════════
+function renderRiders(){
+  document.getElementById('rider-tbody').innerHTML = riders.map(r=>`
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;border-radius:50%;background:var(--matcha-dim);display:flex;align-items:center;justify-content:center;">🧑</div><b>${r.name}</b></div></td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);">${r.sid}</td>
+      <td style="color:var(--milo);font-family:'DM Mono',monospace;font-size:12px;">${r.phone}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;">${r.plate}</td>
+      <td><span class="rider-avail avail-${r.status==='free'?'free':r.status==='busy'?'busy':'off'}">${r.status==='free'?'● FREE':r.status==='busy'?'● BUSY':'● OFF'}</span></td>
+      <td style="font-weight:600;">${r.ordersToday}</td>
+      <td style="color:var(--matcha);font-weight:700;font-family:'DM Mono',monospace;">RM ${r.earnings.toFixed(2)}</td>
+      <td>
+        <button onclick="toggleRiderStatus(${r.id})" style="background:var(--bg4);border:1px solid var(--border2);color:var(--text2);border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer;">Toggle</button>
+        <button onclick="removeRider(${r.id})" style="background:transparent;border:1px solid var(--red-dim);color:var(--red);border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;margin-left:4px;">✕</button>
+      </td>
+    </tr>`).join('');
+}
+
+function toggleRiderStatus(id){
+  const r = riders.find(x=>x.id===id);
+  if(!r) return;
+  r.status = r.status==='free'?'off':r.status==='off'?'free':'free';
+  renderRiders();
+  showToast(`${r.name} → ${r.status.toUpperCase()}`);
+}
+window.toggleRiderStatus = toggleRiderStatus;
+
+function removeRider(id){ riders=riders.filter(r=>r.id!==id); renderRiders(); showToast('Rider removed'); }
+window.removeRider = removeRider;
+
+function showAddRider(){ document.getElementById('add-rider-modal').style.display='flex'; }
+window.showAddRider = showAddRider;
+function closeAddRider(){ document.getElementById('add-rider-modal').style.display='none'; }
+window.closeAddRider = closeAddRider;
+
+function saveRider(){
+  const name=document.getElementById('r-name').value.trim();
+  const sid=document.getElementById('r-sid').value.trim();
+  const phone=document.getElementById('r-phone').value.trim();
+  const plate=document.getElementById('r-plate').value.trim();
+  if(!name||!phone){showToast('⚠️ Fill in all fields');return;}
+  riders.push({id:Date.now(),name,sid,phone,plate,status:'free',ordersToday:0,earnings:0});
+  closeAddRider();
+  renderRiders();
+  showToast(`✅ ${name} added as Rider!`);
+  ['r-name','r-sid','r-phone','r-plate'].forEach(id=>document.getElementById(id).value='');
+}
+window.saveRider = saveRider;
+
+// ═══════════════════════════════════════════
+//  HISTORY
+// ═══════════════════════════════════════════
+function renderHistory(){
+  const done = orders.filter(o=>o.status==='done');
+  const rev  = done.reduce((s,o)=>s+(o.total||0),0);
+  document.getElementById('h-orders').textContent  = done.length;
+  document.getElementById('h-revenue').textContent = 'RM '+rev.toFixed(0);
+  document.getElementById('h-avg').textContent     = done.length?'RM '+(rev/done.length).toFixed(2):'RM 0';
+  const counts={};
+  done.forEach(o=>(o.items||[]).forEach(it=>{ counts[it.name]=(counts[it.name]||0)+it.qty; }));
+  const top = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('h-top').textContent = top?top[0].split(' ').slice(0,2).join(' '):'—';
+
+  if(done.length===0){
+    document.getElementById('history-container').innerHTML=`<div class="empty-state"><div class="e-icon">📊</div><div class="e-title">No completed orders yet</div></div>`;
+    return;
+  }
+  document.getElementById('history-container').innerHTML = done.map((o,i)=>`
+    <div class="order-card done" style="animation-delay:${i*0.03}s">
+      <div class="order-num"><span class="num">${o.code}</span></div>
+      <div class="order-info">
+        <div class="order-top">
+          <span class="order-name">${o.name}</span>
+          <span class="order-type-badge ${o.type==='delivery'?'badge-delivery':'badge-pickup'}">${o.type==='delivery'?'🛵 Delivery':'🛍 Pick Up'}</span>
+          <span class="order-status-badge status-done">✅ Done</span>
+        </div>
+        <div class="order-items">${(o.items||[]).map(it=>`<span>${it.emoji} ${it.name}</span> ×${it.qty}<br>`).join('')}</div>
+        <div class="order-meta"><span class="phone">📞 ${o.phone}</span><span class="time-ago">⏱ ${timeAgo(o.time)}</span></div>
+      </div>
+      <div class="order-actions"><div class="order-total">RM ${o.total?o.total.toFixed(2):'0.00'}</div></div>
+    </div>`).join('');
+}
+window.renderHistory = renderHistory;
+
+function filterHistory(f,el){
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderHistory();
+}
+window.filterHistory = filterHistory;
+
+// ═══════════════════════════════════════════
+//  MENU
+// ═══════════════════════════════════════════
+function renderMenu(){
+  document.getElementById('menu-grid').innerHTML = menus.map(m=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;display:flex;align-items:center;gap:14px;">
+      <div style="width:52px;height:52px;border-radius:14px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:26px;">${m.emoji}</div>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:600;color:var(--cream);">${m.name}</div>
+        <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">${m.cat}</div>
+      </div>
+      <div style="font-size:16px;font-weight:700;color:var(--matcha);font-family:'DM Mono',monospace;">RM ${m.price.toFixed(2)}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'),3000);
+}
+window.showToast = showToast;
+
+// Simulate order button (for testing)
+window.addDemoOrder = function(){
+  showToast('ℹ️ Orders come from the customer app now!');
+}
+</script>
+</body>
+</html>
