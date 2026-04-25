@@ -933,6 +933,7 @@ td{padding:14px 16px;font-size:13px;color:var(--text);}
           <div class="filter-chip active" onclick="filterHistory('today',this)">Today</div>
           <div class="filter-chip" onclick="filterHistory('week',this)">This Week</div>
           <div class="filter-chip" onclick="filterHistory('all',this)">All Time</div>
+          <div class="filter-chip" onclick="filterHistory('pending',this)">⏳ Pending</div>
         </div>
 
         <div class="stats-row" style="margin-bottom:20px;">
@@ -1083,12 +1084,23 @@ function initDashboard(){
   startClock();
   renderMenu();
 
-  // Listen orders
-  const qo = query(collection(db,'orders'), orderBy('timestamp','desc'));
-  onSnapshot(qo, snap=>{
+  // Listen ALL orders — no orderBy so orders without timestamp also load
+  onSnapshot(collection(db,'orders'), snap=>{
     orders=[];
-    snap.forEach(d=>orders.push({ docId:d.id, ...d.data(), time:d.data().timestamp?.toDate()||new Date() }));
+    snap.forEach(d=>{
+      const data = d.data();
+      orders.push({
+        docId: d.id,
+        ...data,
+        // Handle missing timestamp gracefully
+        time: data.timestamp ? data.timestamp.toDate() : (data.createdAt ? new Date(data.createdAt) : new Date(0)),
+      });
+    });
+    // Sort client-side: newest first, handle missing timestamps
+    orders.sort((a,b)=> (b.time||new Date(0)) - (a.time||new Date(0)));
     renderOrders(); updateStats(); updateNewBadge();
+    // Re-render history if on that page
+    if(document.getElementById('page-history').classList.contains('active')) renderHistory();
   });
 
   // Listen riders (from Firestore)
@@ -1154,8 +1166,21 @@ function renderOrders(){
         </div>
         <div class="order-meta">
           <span class="phone">📞 ${o.phone}</span>
-          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">💳 ${o.paymentMethod||'TNG'}</span>
+          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">💳 ${o.paymentMethod||'TNG'} · <span style="color:${o.paymentStatus==='verified'?'var(--matcha2)':'var(--amber)'}">${o.paymentStatus==='verified'?'✅ AI Verified':'⏳ Pending'}</span></span>
         </div>
+        ${(o.screenshotBase64 || o.screenshotURL) ? `
+        <div style="margin-top:10px;">
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:5px;">
+            💳 PAYMENT RECEIPT <span style="color:var(--matcha2);">✅ AI Verified</span>
+          </div>
+          <img src="${o.screenshotBase64 ? 'data:image/jpeg;base64,'+o.screenshotBase64 : o.screenshotURL}"
+            style="width:100%;max-height:200px;object-fit:contain;border-radius:10px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);"
+            onclick="showFullReceipt('${o.docId}')"
+            title="Click to enlarge">
+        </div>` : o.paymentStatus === 'ai_verified' ? `
+        <div style="margin-top:8px;background:var(--matcha-dim);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--matcha2);">
+          ✅ AI Verified payment
+        </div>` : ''}
       </div>
       <div class="order-actions">
         <div class="order-total">RM ${(o.total||0).toFixed(2)}</div>
@@ -1405,37 +1430,87 @@ window.markPaid=markPaid;
 //  HISTORY
 // ═══════════════════════════════════════════════════════
 function renderHistory(){
-  const done=orders.filter(o=>o.status==='done');
-  const rev=done.reduce((s,o)=>s+(o.total||0),0);
-  document.getElementById('h-orders').textContent  = done.length;
+  // Show ALL orders in history — not just 'done'
+  // 'pending' filter = new/preparing/ready/delivering
+  const allOrders = orders;
+  const allDone   = orders.filter(o=>o.status==='done');
+
+  // Apply date filter
+  const now   = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekStart = new Date(today); weekStart.setDate(today.getDate() - 6);
+
+  let filtered;
+  if(historyFilter === 'today'){
+    filtered = allOrders.filter(o => o.time >= today);
+  } else if(historyFilter === 'week'){
+    filtered = allOrders.filter(o => o.time >= weekStart);
+  } else if(historyFilter === 'pending'){
+    filtered = allOrders.filter(o => o.status !== 'done');
+  } else {
+    filtered = allOrders; // All Time — show everything
+  }
+
+  const rev = allDone.reduce((s,o)=>s+(o.total||0),0);
+
+  document.getElementById('h-orders').textContent  = allDone.length + ' done / ' + allOrders.length + ' total';
   document.getElementById('h-revenue').textContent = 'RM '+rev.toFixed(0);
-  document.getElementById('h-avg').textContent     = done.length?'RM '+(rev/done.length).toFixed(2):'RM 0';
+  document.getElementById('h-avg').textContent     = allDone.length?'RM '+(rev/allDone.length).toFixed(2):'RM 0';
+
   const counts={};
-  done.forEach(o=>(o.items||[]).forEach(it=>{ counts[it.name]=(counts[it.name]||0)+it.qty; }));
+  allOrders.forEach(o=>(o.items||[]).forEach(it=>{ counts[it.name]=(counts[it.name]||0)+it.qty; }));
   const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('h-top').textContent=top?top[0].split(' ').slice(0,2).join(' '):'—';
+
   const container=document.getElementById('history-container');
-  if(!done.length){ container.innerHTML=`<div class="empty-state"><div class="e-icon">📊</div><div class="e-title">No completed orders</div></div>`; return; }
-  container.innerHTML=done.map((o,i)=>`
+
+  if(!allOrders.length){
+    container.innerHTML='<div class="empty-state"><div class="e-icon">📊</div><div class="e-title">No orders yet</div><div class="e-sub">Orders appear here in real time from Firebase</div></div>';
+    return;
+  }
+
+  if(!filtered.length){
+    container.innerHTML='<div class="empty-state"><div class="e-icon">📅</div><div class="e-title">No orders for this filter</div><div class="e-sub">Try "All Time" to see everything</div></div>';
+    return;
+  }
+
+  // Format date nicely
+  const fmtDate = (d) => {
+    if(!d || d.getTime()===0) return '—';
+    return d.toLocaleDateString('en-MY', {day:'numeric',month:'short',year:'numeric'}) + ' ' +
+           d.toLocaleTimeString('en-MY', {hour:'2-digit',minute:'2-digit',hour12:true});
+  };
+
+  container.innerHTML=filtered.map((o,i)=>`
     <div class="order-card done" style="animation-delay:${i*0.03}s">
-      <div class="order-num"><span class="num">${o.code||'—'}</span></div>
+      <div class="order-num">
+        <span class="num">${o.code||'—'}</span>
+        <span style="font-size:9px;color:var(--text3);margin-top:2px;display:block;">${fmtDate(o.time)}</span>
+      </div>
       <div class="order-info">
         <div class="order-top">
           <span class="order-name">${o.name}</span>
           <span class="order-type-badge ${o.type==='delivery'?'badge-delivery':'badge-pickup'}">${o.type==='delivery'?'🛵 Delivery':'🛍 Pick Up'}</span>
-          <span class="order-status-badge status-done">✅ Done</span>
+          <span class="order-status-badge status-${o.status||'new'}">${{new:"🔴 New",preparing:"🟡 Preparing",ready:"🟢 Ready",delivering:"🔵 Delivering",done:"✅ Done"}[o.status]||"⏳ "+( o.status||"pending")}</span>
         </div>
         <div class="order-items">${(o.items||[]).map(it=>`<span>${it.emoji} ${it.name}</span> ×${it.qty}<br>`).join('')}</div>
-        <div class="order-meta"><span class="phone">📞 ${o.phone}</span><span>⏱ ${timeAgo(o.time)}</span></div>
+        <div class="order-meta">
+          <span class="phone">📞 ${o.phone}</span>
+          ${o.screenshotURL ? `<span style="color:var(--matcha2);font-size:10px;">📎 <a href="${o.screenshotURL}" target="_blank" style="color:var(--matcha2);">Receipt</a></span>` : ''}
+        </div>
       </div>
       <div class="order-actions"><div class="order-total">RM ${(o.total||0).toFixed(2)}</div></div>
     </div>`).join('');
 }
 window.renderHistory=renderHistory;
 
+let historyFilter = 'today';
+
 function filterHistory(f,el){
+  historyFilter = f;
   document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
-  el.classList.add('active'); renderHistory();
+  el.classList.add('active');
+  renderHistory();
 }
 window.filterHistory=filterHistory;
 
@@ -1450,6 +1525,22 @@ function renderMenu(){
       <div style="font-size:16px;font-weight:700;color:var(--matcha);font-family:'DM Mono',monospace;">RM ${m.price.toFixed(2)}</div>
     </div>`).join('');
 }
+
+// ═══════════════════════════════════════════════════════
+//  SHOW FULL RECEIPT
+// ═══════════════════════════════════════════════════════
+function showFullReceipt(docId){
+  const order = orders.find(o=>o.docId===docId);
+  if(!order) return;
+  const src = order.screenshotBase64
+    ? 'data:image/jpeg;base64,'+order.screenshotBase64
+    : order.screenshotURL;
+  if(!src) return;
+  // Open in new tab
+  const w = window.open();
+  w.document.write('<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="'+src+'" style="max-width:100%;max-height:100vh;object-fit:contain;"></body></html>');
+}
+window.showFullReceipt=showFullReceipt;
 
 // ═══════════════════════════════════════════════════════
 //  TOAST
