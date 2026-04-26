@@ -790,15 +790,20 @@ function initDashboard(){
   onSnapshot(qr, snap=>{
     riders=[];
     snap.forEach(d=>riders.push({ docId:d.id, ...d.data() }));
-    // Auto-reset stale isOnline — if rider hasn't updated in >30min, mark offline
-    const thirtyMin = 30 * 60 * 1000;
+    // Auto-reset stale isOnline — only if lastSeenAt > 2 hours ago
+    // Use 2 hours to avoid race condition with fresh logins
+    const twoHours = 2 * 60 * 60 * 1000;
     riders.forEach(async r => {
-      if(r.isOnline === true) {
-        const lastSeen = r.lastSeenAt ? new Date(r.lastSeenAt).getTime() : 0;
-        const stale = !r.lastSeenAt || (Date.now() - lastSeen > thirtyMin);
+      if(r.isOnline === true && r.lastSeenAt) {
+        const lastSeen = new Date(r.lastSeenAt).getTime();
+        const stale = (Date.now() - lastSeen) > twoHours;
         if(stale) {
           try { await updateDoc(doc(db,'riders',r.docId), { isOnline: false }); } catch(e){}
         }
+      }
+      // If isOnline=true but NO lastSeenAt at all → old stale data, reset
+      if(r.isOnline === true && !r.lastSeenAt) {
+        try { await updateDoc(doc(db,'riders',r.docId), { isOnline: false }); } catch(e){}
       }
     });
     renderRiders();
