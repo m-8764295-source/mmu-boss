@@ -3,785 +3,270 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Soy & Oden — Boss Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+<title>MIDI — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root{
-  --bg:#0F0E0C;
-  --bg2:#161410;
-  --bg3:#1E1B17;
-  --bg4:#252118;
-  --card:#1A1714;
-  --border:#2A2520;
-  --border2:#363028;
-  --matcha:#7A9E5A;
-  --matcha2:#9ABF72;
-  --matcha-dim:#3D5030;
+  --bg:#0F0E0C;--bg2:#161410;--bg3:#1E1B17;--bg4:#252118;
+  --card:#1A1714;--border:#2A2520;--border2:#363028;
+  --matcha:#7A9E5A;--matcha2:#9ABF72;--matcha-dim:#3D5030;
   --matcha-glow:rgba(122,158,90,0.15);
-  --milo:#C49A6C;
-  --milo-dim:#6B4E2A;
-  --cream:#F5EDE0;
-  --cream2:#D4C4B0;
-  --text:#EDE8E0;
-  --text2:#A09080;
-  --text3:#6B5D50;
-  --red:#E8654A;
-  --red-dim:#5C2A1E;
-  --blue:#5B8FA6;
-  --blue-dim:#1E3A47;
-  --amber:#D4A853;
-  --amber-dim:#5C3F10;
+  --milo:#C49A6C;--milo-dim:#6B4E2A;
+  --cream:#F5EDE0;--cream2:#D4C4B0;
+  --text:#EDE8E0;--text2:#A09080;--text3:#6B5D50;
+  --red:#E8654A;--red-dim:#5C2A1E;
+  --blue:#5B8FA6;--blue-dim:#1E3A47;
+  --blue2:#2979D8;--accent:#4D9FFF;
+  --amber:#D4A853;--amber-dim:#5C3F10;
   --shadow:0 4px 32px rgba(0,0,0,0.4);
-  --r:14px;
-  --r2:10px;
+  --r:14px;--r2:10px;
 }
 
-body{
-  font-family:'DM Sans',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  overflow-x:hidden;
-}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── SPLASH ── */
+#boss-splash{position:fixed;inset:0;z-index:9999;background:#0D1826;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+@keyframes bsIconIn{0%{opacity:0;transform:scale(0.7);}65%{opacity:1;transform:scale(1.05);}100%{opacity:1;transform:scale(1);}}
+@keyframes bsWordIn{0%{opacity:0;transform:translateY(14px);}100%{opacity:1;transform:translateY(0);}}
+@keyframes bsRail{0%{transform:scaleX(0);transform-origin:right;opacity:0;}100%{transform:scaleX(1);transform-origin:right;opacity:1;}}
+@keyframes bsArrow{0%{opacity:0;transform:translateX(-16px);}100%{opacity:1;transform:translateX(0);}}
+@keyframes bsMMU{0%{opacity:0;transform:translateX(-10px);}100%{opacity:1;transform:translateX(0);}}
+@keyframes bsTag{0%{opacity:0;}100%{opacity:1;}}
+@keyframes bsOut{0%{opacity:1;}100%{opacity:0;pointer-events:none;}}
+.bs-icon{animation:bsIconIn 0.55s cubic-bezier(.34,1.56,.64,1) 0.1s both;}
+.bs-word{animation:bsWordIn 0.45s ease 0.7s both;}
+.bs-rail{animation:bsRail 0.4s cubic-bezier(.4,0,.2,1) 1.15s both;}
+.bs-arrow{animation:bsArrow 0.25s ease 1.55s both;}
+.bs-mmu{animation:bsMMU 0.4s ease 1.6s both;}
+.bs-tag{animation:bsTag 0.5s ease 2.1s both;}
+.bs-out{animation:bsOut 0.5s ease 2.8s both;animation-fill-mode:forwards;}
 
 /* ── LOGIN ── */
-#login-screen{
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:radial-gradient(ellipse at 30% 40%,rgba(122,158,90,0.08) 0%,transparent 60%),
-             radial-gradient(ellipse at 80% 80%,rgba(196,154,108,0.06) 0%,transparent 50%),
-             var(--bg);
-}
+#login-screen{min-height:100vh;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 40%,rgba(122,158,90,0.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(196,154,108,0.06) 0%,transparent 50%),var(--bg);}
+.login-card{width:360px;background:var(--card);border:1px solid var(--border2);border-radius:24px;padding:40px 36px;box-shadow:var(--shadow);animation:fadeUp .5s ease;}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo .brand{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:#E8EFFA;letter-spacing:10px;line-height:1;margin-bottom:8px;}
+.login-logo .accent-bar{width:44px;height:4px;background:#4D9FFF;border-radius:2px;margin:0 auto 4px;}
+.login-logo .accent-bar2{width:32px;height:3px;background:#4D9FFF;border-radius:2px;margin:0 auto 16px;opacity:0.5;}
+.login-logo .title{font-size:12px;font-weight:600;color:rgba(255,255,255,0.35);letter-spacing:0.2em;text-transform:uppercase;}
+.login-logo .sub{font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px;letter-spacing:0.1em;}
 
-.login-card{
-  width:360px;
-  background:var(--card);
-  border:1px solid var(--border2);
-  border-radius:24px;
-  padding:40px 36px;
-  box-shadow:var(--shadow);
-  animation:fadeUp .5s ease;
-}
-
-.login-logo{
-  text-align:center;
-  margin-bottom:28px;
-}
-
-.login-logo .brand{
-  font-size:13px;
-  font-weight:600;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  color:var(--matcha);
-  margin-bottom:6px;
-}
-
-.login-logo .title{
-  font-family:'Playfair Display',serif;
-  font-style:italic;
-  font-size:28px;
-  color:var(--cream);
-}
-
-.login-logo .sub{
-  font-size:11px;
-  color:var(--text3);
-  margin-top:4px;
-  font-family:'DM Mono',monospace;
-  letter-spacing:.06em;
-}
-
-.field{
-  margin-bottom:14px;
-}
-
-.field label{
-  display:block;
-  font-size:11px;
-  font-weight:600;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:var(--text2);
-  margin-bottom:6px;
-}
-
-.field input{
-  width:100%;
-  background:var(--bg3);
-  border:1.5px solid var(--border2);
-  border-radius:var(--r2);
-  padding:13px 16px;
-  font-family:'DM Sans',sans-serif;
-  font-size:15px;
-  color:var(--text);
-  outline:none;
-  transition:border-color .2s;
-}
-
+/* ── FIELD ── */
+.field{margin-bottom:14px;}
+.field label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:6px;}
+.field input,.field select{width:100%;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r2);padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--cream);outline:none;transition:border-color .2s;}
 .field input:focus{border-color:var(--matcha);}
-.field input::placeholder{color:var(--text3);}
-
-.login-btn{
-  width:100%;
-  background:var(--matcha);
-  color:#fff;
-  border:none;
-  border-radius:var(--r2);
-  padding:15px;
-  font-family:'DM Sans',sans-serif;
-  font-size:15px;
-  font-weight:700;
-  cursor:pointer;
-  margin-top:6px;
-  transition:background .15s,transform .15s;
-  box-shadow:0 6px 24px rgba(122,158,90,0.3);
-}
-.login-btn:hover{background:var(--matcha2);}
+.login-btn{width:100%;background:var(--matcha);color:#fff;border:none;border-radius:var(--r2);padding:14px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.04em;box-shadow:0 6px 20px rgba(122,158,90,0.3);transition:all .15s;}
 .login-btn:active{transform:scale(.98);}
+.login-err{font-size:12px;color:var(--red);text-align:center;margin-top:10px;display:none;}
 
-.login-err{
-  color:var(--red);
-  font-size:12px;
-  text-align:center;
-  margin-top:10px;
-  display:none;
-}
-
-/* ── DASHBOARD ── */
+/* ── LAYOUT ── */
 #dashboard{display:none;}
-
-/* Sidebar */
 .layout{display:flex;min-height:100vh;}
 
-.sidebar{
-  width:220px;
-  background:var(--bg2);
-  border-right:1px solid var(--border);
-  display:flex;
-  flex-direction:column;
-  padding:24px 0;
-  position:fixed;
-  top:0;left:0;bottom:0;
-  z-index:100;
-}
-
-.sidebar-brand{
-  padding:0 20px 24px;
-  border-bottom:1px solid var(--border);
-  margin-bottom:16px;
-}
-
-.sidebar-brand .s-name{
-  font-family:'Playfair Display',serif;
-  font-style:italic;
-  font-size:20px;
-  color:var(--cream);
-}
-
-.sidebar-brand .s-role{
-  font-size:10px;
-  font-weight:600;
-  letter-spacing:.1em;
-  text-transform:uppercase;
-  color:var(--matcha);
-  font-family:'DM Mono',monospace;
-}
-
-.nav-item{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:10px 20px;
-  cursor:pointer;
-  border-radius:0;
-  transition:background .15s;
-  font-size:13px;
-  font-weight:500;
-  color:var(--text2);
-  border-left:2px solid transparent;
-  margin:1px 0;
-  position:relative;
-}
-
+/* ── SIDEBAR ── */
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:50;overflow-y:auto;}
+.sidebar-brand{padding:28px 20px 20px;border-bottom:1px solid var(--border);}
+.s-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#E8EFFA;letter-spacing:6px;margin-bottom:4px;}
+.s-role{font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:0.15em;font-weight:600;text-transform:uppercase;}
+.nav-item{padding:11px 20px;display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);border-radius:0;transition:all .15s;position:relative;}
 .nav-item:hover{background:var(--bg3);color:var(--text);}
-
-.nav-item.active{
-  background:var(--bg3);
-  color:var(--matcha);
-  border-left-color:var(--matcha);
-}
-
+.nav-item.active{background:var(--bg3);color:var(--cream);font-weight:700;}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:3px;background:var(--matcha);border-radius:0 2px 2px 0;}
 .nav-icon{font-size:16px;width:20px;text-align:center;}
-
-.nav-badge{
-  position:absolute;
-  right:14px;
-  background:var(--red);
-  color:#fff;
-  font-size:9px;
-  font-weight:700;
-  padding:2px 6px;
-  border-radius:100px;
-  font-family:'DM Mono',monospace;
-}
-
-.sidebar-bottom{
-  margin-top:auto;
-  padding:16px 20px 0;
-  border-top:1px solid var(--border);
-}
-
-.logout-btn{
-  width:100%;
-  background:transparent;
-  border:1px solid var(--border2);
-  border-radius:var(--r2);
-  padding:9px;
-  font-family:'DM Sans',sans-serif;
-  font-size:12px;
-  font-weight:600;
-  color:var(--text2);
-  cursor:pointer;
-  transition:all .15s;
-}
+.nav-badge{background:var(--red);color:#fff;border-radius:100px;padding:2px 8px;font-size:10px;font-weight:700;margin-left:auto;display:none;}
+.sidebar-bottom{margin-top:auto;padding:20px;border-top:1px solid var(--border);}
+.sidebar-clock{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);margin-bottom:12px;}
+.logout-btn{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:9px;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;}
 .logout-btn:hover{border-color:var(--red);color:var(--red);}
 
-/* Main content */
-.main{
-  margin-left:220px;
-  flex:1;
-  padding:28px 32px;
-  min-height:100vh;
-}
+/* ── MAIN ── */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;}
+.topbar{padding:20px 28px 0;display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;}
+.topbar-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--cream);}
+.topbar-title span{color:var(--matcha);}
 
-/* Topbar */
-.topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:28px;
-}
-
-.topbar-title{
-  font-size:22px;
-  font-weight:700;
-  color:var(--cream);
-}
-
-.topbar-title span{
-  font-family:'Playfair Display',serif;
-  font-style:italic;
-  color:var(--matcha);
-  font-weight:400;
-}
-
-.topbar-right{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.live-pill{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  background:var(--bg3);
-  border:1px solid var(--border2);
-  border-radius:100px;
-  padding:6px 14px;
-  font-size:12px;
-  font-weight:600;
-  color:var(--matcha);
-  font-family:'DM Mono',monospace;
-}
-
-.live-dot{
-  width:6px;height:6px;
-  border-radius:50%;
-  background:var(--matcha);
-  animation:pulse 2s infinite;
-}
-
-.time-display{
-  font-family:'DM Mono',monospace;
-  font-size:13px;
-  color:var(--text2);
-}
-
-/* Stat cards */
-.stats-row{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:14px;
-  margin-bottom:28px;
-}
-
-.stat-card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:var(--r);
-  padding:18px 20px;
-  animation:fadeUp .4s ease both;
-}
-
-.stat-label{
-  font-size:10px;
-  font-weight:600;
-  letter-spacing:.1em;
-  text-transform:uppercase;
-  color:var(--text3);
-  margin-bottom:8px;
-  font-family:'DM Mono',monospace;
-}
-
-.stat-val{
-  font-size:28px;
-  font-weight:700;
-  color:var(--cream);
-  line-height:1;
-  margin-bottom:4px;
-}
-
-.stat-sub{
-  font-size:11px;
-  color:var(--text2);
-}
-
-.stat-card.green .stat-val{color:var(--matcha);}
-.stat-card.amber .stat-val{color:var(--amber);}
-.stat-card.red .stat-val{color:var(--red);}
-.stat-card.blue .stat-val{color:var(--blue);}
-
-/* Tabs */
-.tabs{
-  display:flex;
-  gap:4px;
-  margin-bottom:20px;
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:var(--r2);
-  padding:4px;
-  width:fit-content;
-}
-
-.tab{
-  padding:8px 18px;
-  border-radius:8px;
-  font-size:13px;
-  font-weight:600;
-  cursor:pointer;
-  transition:all .15s;
-  color:var(--text2);
-  position:relative;
-}
-
-.tab.active{
-  background:var(--bg4);
-  color:var(--matcha);
-}
-
-.tab .t-badge{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:16px;height:16px;
-  border-radius:50%;
-  background:var(--red);
-  color:#fff;
-  font-size:9px;
-  font-weight:700;
-  margin-left:5px;
-  vertical-align:middle;
-}
-
-/* Orders */
-.orders-grid{
-  display:grid;
-  gap:12px;
-}
-
-.order-card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:var(--r);
-  padding:20px;
-  display:grid;
-  grid-template-columns:auto 1fr auto;
-  gap:16px;
-  align-items:start;
-  animation:fadeUp .3s ease both;
-  transition:border-color .2s;
-}
-
-.order-card:hover{border-color:var(--border2);}
-
-.order-card.new{border-left:3px solid var(--red);}
-.order-card.preparing{border-left:3px solid var(--amber);}
-.order-card.ready{border-left:3px solid var(--matcha);}
-.order-card.delivering{border-left:3px solid var(--blue);}
-.order-card.done{border-left:3px solid var(--text3);opacity:.65;}
-
-.order-num{
-  font-family:'DM Mono',monospace;
-  font-size:11px;
-  font-weight:500;
-  color:var(--text3);
-  background:var(--bg3);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:6px 10px;
-  text-align:center;
-  white-space:nowrap;
-}
-
-.order-num .num{
-  font-size:18px;
-  font-weight:700;
-  color:var(--cream);
-  display:block;
-  line-height:1.2;
-}
-
-.order-info{}
-
-.order-top{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:6px;
-  flex-wrap:wrap;
-}
-
-.order-name{
-  font-size:15px;
-  font-weight:700;
-  color:var(--cream);
-}
-
-.order-type-badge{
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:.06em;
-  padding:3px 8px;
-  border-radius:100px;
-  font-family:'DM Mono',monospace;
-}
-
-.badge-pickup{background:var(--matcha-dim);color:var(--matcha2);}
-.badge-delivery{background:var(--blue-dim);color:var(--blue);}
-
-.order-status-badge{
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:.05em;
-  padding:3px 10px;
-  border-radius:100px;
-  font-family:'DM Mono',monospace;
-}
-
-.status-new{background:var(--red-dim);color:var(--red);}
-.status-preparing{background:var(--amber-dim);color:var(--amber);}
-.status-ready{background:var(--matcha-dim);color:var(--matcha2);}
-.status-delivering{background:var(--blue-dim);color:var(--blue);}
-.status-done{background:var(--bg3);color:var(--text3);}
-
-.order-items{
-  font-size:12px;
-  color:var(--text2);
-  line-height:1.7;
-  margin-bottom:8px;
-}
-
-.order-items span{color:var(--text);font-weight:500;}
-
-.order-meta{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  font-size:11px;
-  color:var(--text3);
-  font-family:'DM Mono',monospace;
-}
-
-.order-meta .phone{color:var(--milo);}
-.order-meta .time-ago{color:var(--text3);}
-
-.order-actions{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  align-items:flex-end;
-}
-
-.order-total{
-  font-size:18px;
-  font-weight:700;
-  color:var(--matcha);
-  font-family:'DM Mono',monospace;
-  text-align:right;
-}
-
-.action-btn{
-  border:none;
-  border-radius:var(--r2);
-  padding:9px 16px;
-  font-family:'DM Sans',sans-serif;
-  font-size:12px;
-  font-weight:700;
-  cursor:pointer;
-  transition:all .15s;
-  white-space:nowrap;
-}
-
-.btn-accept{background:var(--matcha);color:#fff;box-shadow:0 4px 16px rgba(122,158,90,0.3);}
-.btn-accept:hover{background:var(--matcha2);}
-
-.btn-prepare{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(212,168,83,0.2);}
-.btn-prepare:hover{background:rgba(212,168,83,0.2);}
-
-.btn-ready{background:var(--matcha-dim);color:var(--matcha2);border:1px solid rgba(122,158,90,0.2);}
-.btn-ready:hover{background:rgba(122,158,90,0.2);}
-
-.btn-assign{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(91,143,166,0.2);}
-.btn-assign:hover{background:rgba(91,143,166,0.2);}
-
-.btn-done{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
-.btn-done:hover{border-color:var(--border2);}
-
-.btn-reject{background:transparent;color:var(--red);border:1px solid var(--red-dim);font-size:11px;padding:6px 12px;}
-.btn-reject:hover{background:var(--red-dim);}
-
-/* Rider assign modal */
-.modal-overlay{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,0.7);
-  backdrop-filter:blur(4px);
-  display:flex;align-items:center;justify-content:center;
-  z-index:999;
-  display:none;
-}
-
-.modal-box{
-  background:var(--bg3);
-  border:1px solid var(--border2);
-  border-radius:20px;
-  padding:28px;
-  width:380px;
-  box-shadow:var(--shadow);
-  animation:scaleIn .2s ease;
-}
-
-.modal-title{
-  font-size:17px;
-  font-weight:700;
-  color:var(--cream);
-  margin-bottom:4px;
-}
-
-.modal-sub{
-  font-size:12px;
-  color:var(--text2);
-  margin-bottom:20px;
-}
-
-.rider-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
-
-.rider-item{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  background:var(--bg4);
-  border:1.5px solid var(--border);
-  border-radius:var(--r2);
-  padding:12px 14px;
-  cursor:pointer;
-  transition:all .15s;
-}
-
-.rider-item:hover,.rider-item.selected{
-  border-color:var(--matcha);
-  background:var(--matcha-glow);
-}
-
-.rider-avatar{
-  width:36px;height:36px;
-  border-radius:50%;
-  background:var(--matcha-dim);
-  display:flex;align-items:center;justify-content:center;
-  font-size:16px;
-  flex-shrink:0;
-}
-
-.rider-name{font-size:14px;font-weight:600;color:var(--cream);}
-.rider-info{font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;}
-
-.rider-status-dot{
-  width:8px;height:8px;border-radius:50%;
-  background:var(--matcha);
-  margin-left:auto;
-  flex-shrink:0;
-}
-
-.rider-status-dot.busy{background:var(--amber);}
-
-.modal-btns{display:flex;gap:8px;}
-
-.modal-confirm{
-  flex:1;background:var(--matcha);color:#fff;border:none;
-  border-radius:var(--r2);padding:12px;font-family:'DM Sans',sans-serif;
-  font-size:14px;font-weight:700;cursor:pointer;
-  transition:background .15s;
-}
-.modal-confirm:hover{background:var(--matcha2);}
-
-.modal-cancel{
-  background:transparent;color:var(--text2);border:1px solid var(--border2);
-  border-radius:var(--r2);padding:12px 18px;font-family:'DM Sans',sans-serif;
-  font-size:14px;cursor:pointer;transition:all .15s;
-}
-.modal-cancel:hover{border-color:var(--border2);color:var(--text);}
-
-/* Rider page */
-.page{display:none;}
+/* ── PAGES ── */
+.page{display:none;padding:0 28px 40px;}
 .page.active{display:block;}
 
-.rider-table-wrap{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:var(--r);
-  overflow:hidden;
-}
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.stat-box,.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;}
+.stat-card.red{border-left:3px solid var(--red);}
+.stat-card.amber{border-left:3px solid var(--amber);}
+.stat-card.blue{border-left:3px solid var(--blue);}
+.stat-card.green{border-left:3px solid var(--matcha);}
+.stat-num,.stat-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--cream);margin:4px 0;}
+.stat-label{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:2px;}
 
-table{width:100%;border-collapse:collapse;}
-thead tr{background:var(--bg3);border-bottom:1px solid var(--border);}
-th{
-  padding:12px 16px;
-  text-align:left;
-  font-size:10px;
-  font-weight:700;
-  letter-spacing:.1em;
-  text-transform:uppercase;
-  color:var(--text3);
-  font-family:'DM Mono',monospace;
-}
+/* ── TOPBAR RIGHT ── */
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.live-pill{display:flex;align-items:center;gap:6px;background:rgba(122,158,90,0.12);border:1px solid rgba(122,158,90,0.25);border-radius:100px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--matcha2);letter-spacing:.06em;font-family:'DM Mono',monospace;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--matcha);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.time-display{font-family:'DM Mono',monospace;font-size:13px;color:var(--text3);}
 
-tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
-tbody tr:last-child{border-bottom:none;}
-tbody tr:hover{background:var(--bg3);}
-td{padding:14px 16px;font-size:13px;color:var(--text);}
+/* ── TABS ── */
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.tab{padding:7px 16px;border-radius:100px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.tab.active{background:var(--matcha);border-color:var(--matcha);color:#fff;}
+.t-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:10px;font-weight:700;margin-left:4px;padding:0 3px;}
+.tab-all-badge,.tab-new-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:10px;font-weight:700;margin-left:4px;}
 
-.rider-avail{
-  display:inline-flex;align-items:center;gap:5px;
-  font-size:11px;font-weight:600;
-  padding:3px 10px;border-radius:100px;
-  font-family:'DM Mono',monospace;
-}
+/* ── ORDERS GRID ── */
+.orders-grid{display:flex;flex-direction:column;gap:0;}
 
-.avail-free{background:var(--matcha-dim);color:var(--matcha2);}
-.avail-busy{background:var(--amber-dim);color:var(--amber);}
-.avail-off{background:var(--bg4);color:var(--text3);}
+/* ── ORDER CARDS ── */
+.order-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:10px;display:flex;gap:14px;transition:border-color .2s;animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.order-card.new{border-color:rgba(232,101,74,0.4);}
+.order-card.preparing{border-color:rgba(212,168,83,0.35);}
+.order-card.ready{border-color:rgba(122,158,90,0.4);}
+.order-card.delivering{border-color:rgba(91,143,166,0.4);}
+.order-num{width:52px;flex-shrink:0;text-align:center;}
+.order-num .num{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--cream);display:block;}
+.order-info{flex:1;min-width:0;}
+.order-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+.order-name{font-size:15px;font-weight:700;color:var(--cream);}
+.order-type-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;font-family:'DM Mono',monospace;}
+.badge-delivery{background:rgba(91,143,166,0.15);color:var(--blue);}
+.badge-pickup{background:rgba(122,158,90,0.12);color:var(--matcha2);}
+.order-status-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;font-family:'DM Mono',monospace;}
+.status-new{background:rgba(232,101,74,0.15);color:var(--red);}
+.status-preparing{background:rgba(212,168,83,0.15);color:var(--amber);}
+.status-ready{background:rgba(122,158,90,0.15);color:var(--matcha2);}
+.status-delivering{background:rgba(91,143,166,0.15);color:var(--blue);}
+.status-done{background:rgba(255,255,255,0.05);color:var(--text3);}
+.order-items{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;}
+.order-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.phone{font-size:12px;color:var(--milo);font-family:'DM Mono',monospace;}
+.order-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;}
+.order-total{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--matcha);}
+.action-btn{padding:8px 14px;border-radius:var(--r2);border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;transition:all .15s;white-space:nowrap;}
+.action-btn:active{transform:scale(.97);}
+.btn-accept{background:var(--matcha);color:#fff;box-shadow:0 4px 16px rgba(122,158,90,0.3);}
+.btn-reject{background:var(--red-dim);color:var(--red);}
+.btn-ready{background:var(--matcha-dim);color:var(--matcha2);border:1px solid rgba(122,158,90,0.2);}
+.btn-assign{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(91,143,166,0.25);}
+.btn-done{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);}
 
-.add-rider-btn{
-  background:var(--matcha);color:#fff;border:none;
-  border-radius:var(--r2);padding:10px 20px;
-  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;
-  cursor:pointer;margin-bottom:16px;
-  transition:background .15s;
-}
-.add-rider-btn:hover{background:var(--matcha2);}
+/* ── RIDER MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-box{background:var(--card);border:1px solid var(--border2);border-radius:24px;padding:28px;width:420px;max-height:80vh;overflow-y:auto;}
+.modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--cream);margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--text3);margin-bottom:16px;}
+.rider-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.rider-item{background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--r2);padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;}
+.rider-item.selected{border-color:var(--matcha);background:rgba(122,158,90,0.06);}
+.rider-avatar{width:36px;height:36px;border-radius:50%;background:var(--matcha-dim);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.rider-name{font-size:14px;font-weight:600;color:var(--cream);}
+.rider-info{font-size:11px;color:var(--text3);margin-top:2px;}
+.modal-confirm{width:100%;background:var(--matcha);color:#fff;border:none;border-radius:var(--r2);padding:13px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 6px 20px rgba(122,158,90,0.3);transition:all .15s;}
+.modal-confirm:active{transform:scale(.98);}
 
-/* Toast */
-.toast{
-  position:fixed;bottom:28px;right:28px;
-  background:var(--bg3);
-  border:1px solid var(--border2);
-  border-radius:var(--r2);
-  padding:14px 20px;
-  font-size:13px;
-  font-weight:600;
-  color:var(--cream);
-  box-shadow:var(--shadow);
-  z-index:9999;
-  display:none;
-  animation:slideIn .3s ease;
-}
+/* ── RIDER TABLE ── */
+.rider-table-wrap{overflow-x:auto;}
+.rider-table-wrap table{width:100%;border-collapse:collapse;font-size:13px;}
+.rider-table-wrap th{text-align:left;padding:10px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;}
+.rider-table-wrap td{padding:12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.rider-table-wrap tr:last-child td{border-bottom:none;}
 
-.toast.show{display:block;}
-.toast .t-icon{margin-right:8px;}
+/* ── HISTORY ── */
+.filter-chip{padding:6px 14px;border-radius:100px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.filter-chip.active{background:var(--matcha);border-color:var(--matcha);color:#fff;}
+.history-item{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px;}
+.hi-icon{width:36px;height:36px;background:var(--bg3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.hi-info{flex:1;min-width:0;}
+.hi-name{font-size:13px;font-weight:600;color:var(--cream);}
+.hi-meta{font-size:11px;color:var(--text3);margin-top:2px;}
+.hi-earn{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--matcha);}
 
-/* History page */
-.history-filter{
-  display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;
-}
+/* ── MENU ── */
+.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
 
-.filter-chip{
-  padding:6px 14px;border-radius:100px;
-  font-size:12px;font-weight:600;cursor:pointer;
-  border:1px solid var(--border2);
-  background:transparent;color:var(--text2);
-  transition:all .15s;
-}
-.filter-chip.active{background:var(--matcha-dim);color:var(--matcha2);border-color:var(--matcha-dim);}
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:60px 20px;}
+.e-icon{font-size:48px;margin-bottom:12px;}
+.e-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text2);margin-bottom:8px;}
+.e-sub{font-size:13px;color:var(--text3);}
 
-/* Empty state */
-.empty-state{
-  text-align:center;padding:60px 24px;
-  color:var(--text3);
-}
-.empty-state .e-icon{font-size:40px;margin-bottom:12px;}
-.empty-state .e-title{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:4px;}
-.empty-state .e-sub{font-size:12px;}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);padding:12px 18px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);transform:translateY(80px);opacity:0;transition:all .3s;z-index:300;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.t-icon{font-size:16px;}
 
-/* New order flash */
-@keyframes newFlash{
-  0%{box-shadow:0 0 0 0 rgba(232,101,74,0.5);}
-  70%{box-shadow:0 0 0 12px rgba(232,101,74,0);}
-  100%{box-shadow:0 0 0 0 rgba(232,101,74,0);}
-}
-.order-card.new{animation:fadeUp .3s ease both,newFlash 1.5s ease 0.3s;}
+/* ── SECTION CARD ── */
+.section-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+.section-card-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:14px;font-family:'DM Mono',monospace;}
 
-/* Animations */
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(16px);}
-  to{opacity:1;transform:translateY(0);}
-}
-@keyframes scaleIn{
-  from{opacity:0;transform:scale(.95);}
-  to{opacity:1;transform:scale(1);}
-}
-@keyframes pulse{
-  0%,100%{opacity:1;}
-  50%{opacity:.4;}
-}
-@keyframes slideIn{
-  from{opacity:0;transform:translateY(8px);}
-  to{opacity:1;transform:translateY(0);}
-}
-
-/* Scrollbar */
-::-webkit-scrollbar{width:5px;}
-::-webkit-scrollbar-track{background:var(--bg2);}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
-
-/* Add rider modal */
-.add-rider-modal{display:none;}
-.add-rider-modal.show{display:flex;}
+/* BOTTOM TABS - hidden (using sidebar) */
+.bottom-tabs{display:none;}
 </style>
 </head>
 <body>
 
 <!-- ====== LOGIN ====== -->
+<!-- ═══ SPLASH ═══ -->
+<div id="boss-splash" class="bs-out">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:0;padding:0 32px;">
+
+    <!-- Icon -->
+    <div class="bs-icon" style="margin-bottom:24px;">
+      <div style="width:90px;height:90px;border-radius:24px;background:#1B3FA0;display:flex;align-items:center;justify-content:center;box-shadow:0 16px 48px rgba(27,63,160,0.5);">
+        <div style="font-family:'DM Sans',sans-serif;font-size:22px;font-weight:800;color:white;letter-spacing:3px;">MIDI</div>
+      </div>
+    </div>
+
+    <!-- Wordmark -->
+    <div class="bs-word" style="margin-bottom:32px;text-align:center;">
+      <div style="font-family:'DM Sans',sans-serif;font-size:52px;font-weight:800;color:white;letter-spacing:12px;line-height:1;">MIDI</div>
+      <div style="display:flex;justify-content:flex-end;margin-top:5px;">
+        <div style="width:64px;height:4px;background:#4D9FFF;border-radius:2px;"></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:3px;">
+        <div style="width:46px;height:3px;background:#4D9FFF;border-radius:2px;opacity:0.5;"></div>
+      </div>
+    </div>
+
+    <!-- Expansion -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:36px;">
+      <div class="bs-rail" style="display:flex;flex-direction:column;gap:9px;">
+        <div style="width:55px;height:2.5px;border-radius:2px;background:linear-gradient(to left,#4D9FFF,rgba(77,159,255,0));"></div>
+        <div style="width:55px;height:2.5px;border-radius:2px;background:linear-gradient(to left,#4D9FFF,rgba(77,159,255,0));"></div>
+      </div>
+      <div class="bs-arrow">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M2 9H16M16 9L10 3M16 9L10 15" stroke="#4D9FFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="bs-mmu" style="display:flex;align-items:baseline;gap:0;">
+        <span style="font-family:'DM Sans',sans-serif;font-size:26px;font-weight:800;color:white;letter-spacing:3px;">MM</span>
+        <span style="font-family:'DM Sans',sans-serif;font-size:26px;font-weight:800;color:#E53935;letter-spacing:3px;">U</span>
+        <div style="width:1.5px;height:20px;background:rgba(255,255,255,0.2);margin:0 8px;align-self:center;"></div>
+        <span style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:white;letter-spacing:4px;">DELIVERY</span>
+      </div>
+    </div>
+
+    <!-- Tagline -->
+    <div class="bs-tag" style="text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center;">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:0.2em;text-transform:uppercase;">Admin Dashboard · MMU Melaka · 2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LOGIN ═══ -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">
-      <div class="brand">✦ Boss Panel</div>
-      <div class="title">Soy & Oden</div>
-      <div class="sub">ORDER MANAGEMENT SYSTEM</div>
+      <div class="brand">MIDI</div>
+      <div class="accent-bar"></div>
+      <div class="accent-bar2"></div>
+      <div class="title">Admin Dashboard</div>
+      <div class="sub">MMU Melaka · 2026</div>
     </div>
     <div class="field">
       <label>Username</label>
@@ -789,11 +274,10 @@ td{padding:14px 16px;font-size:13px;color:var(--text);}
     </div>
     <div class="field">
       <label>Password</label>
-      <input type="password" id="login-pass" placeholder="••••••••" id="login-pass">
+      <input type="password" id="login-pass" placeholder="••••••••">
     </div>
-    <button class="login-btn" onclick="doLogin()">Login →</button>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
     <div class="login-err" id="login-err">❌ Wrong username or password</div>
-    <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text3);">Default: boss / soyoden2024</div>
   </div>
 </div>
 
@@ -804,8 +288,8 @@ td{padding:14px 16px;font-size:13px;color:var(--text);}
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sidebar-brand">
-        <div class="s-name">Soy & Oden</div>
-        <div class="s-role">BOSS DASHBOARD</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:20px;font-weight:800;color:#E8EFFA;letter-spacing:6px;margin-bottom:4px;">MIDI</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:0.15em;font-weight:600;text-transform:uppercase;">Admin Dashboard</div>
       </div>
 
       <div class="nav-item active" onclick="showPage('orders',this)">
@@ -817,6 +301,9 @@ td{padding:14px 16px;font-size:13px;color:var(--text);}
       </div>
       <div class="nav-item" onclick="showPage('history',this)">
         <span class="nav-icon">📊</span> History
+      </div>
+      <div class="nav-item" onclick="showPage('merchants',this)">
+        <span class="nav-icon">🏪</span> Merchants
       </div>
       <div class="nav-item" onclick="showPage('payroll',this)">
         <span class="nav-icon">💰</span> Payroll
@@ -905,6 +392,41 @@ td{padding:14px 16px;font-size:13px;color:var(--text);}
         <div id="riders-list-wrap">
           <div class="empty-state"><div class="e-icon">⏳</div><div class="e-title">Loading riders...</div></div>
         </div>
+      </div>
+
+      <!-- ── MERCHANTS PAGE ── -->
+      <div class="page" id="page-merchants">
+        <div class="topbar">
+          <div>
+            <div class="topbar-title">🏪 <span>Merchants</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px;">Manage platform merchants</div>
+          </div>
+          <button onclick="showAddMerchant()" style="background:var(--matcha);border:none;border-radius:12px;padding:8px 16px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">+ Add</button>
+        </div>
+
+        <!-- Add merchant form -->
+        <div id="add-merchant-form" style="display:none;background:var(--card);border:1px solid var(--border2);border-radius:var(--r);padding:20px;margin-bottom:16px;">
+          <div style="font-size:14px;font-weight:700;color:var(--cream);margin-bottom:14px;">New Merchant</div>
+          <div style="display:grid;gap:10px;">
+            <div><label style="font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px;">Merchant ID (no spaces)</label>
+            <input id="nm-id" placeholder="e.g. nasi_lemak_abc" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:13px;"></div>
+            <div><label style="font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px;">Business Name</label>
+            <input id="nm-name" placeholder="e.g. Nasi Lemak ABC" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:13px;"></div>
+            <div><label style="font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px;">Category</label>
+            <input id="nm-cat" placeholder="e.g. Malaysian Food" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:13px;"></div>
+            <div><label style="font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px;">Password</label>
+            <input id="nm-pass" type="password" placeholder="Set merchant password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:13px;"></div>
+            <div><label style="font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:4px;">Emoji Icon</label>
+            <input id="nm-emoji" placeholder="e.g. 🍚" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:13px;"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;">
+            <button onclick="saveMerchant()" style="flex:1;background:var(--matcha);border:none;border-radius:10px;padding:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;">Save Merchant</button>
+            <button onclick="document.getElementById('add-merchant-form').style.display='none'" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;">Cancel</button>
+          </div>
+          <div id="merchant-save-err" style="font-size:12px;color:var(--red);margin-top:8px;display:none;"></div>
+        </div>
+
+        <div id="merchants-list"></div>
       </div>
 
       <!-- ── PAYROLL PAGE ── -->
@@ -1013,6 +535,30 @@ td{padding:14px 16px;font-size:13px;color:var(--text);}
 </div>
 
 <!-- Toast -->
+<div class="bottom-tabs">
+  <div class="tab-item active" id="tab-btn-orders" onclick="showPage('orders',this)">
+    <div class="tab-dot" id="orders-dot"></div>
+    <div class="tab-icon">📋</div>
+    <div class="tab-label">ORDERS</div>
+  </div>
+  <div class="tab-item" id="tab-btn-riders" onclick="showPage('riders',this)">
+    <div class="tab-icon">🛵</div>
+    <div class="tab-label">RIDERS</div>
+  </div>
+  <div class="tab-item" id="tab-btn-history" onclick="showPage('history',this)">
+    <div class="tab-icon">📊</div>
+    <div class="tab-label">HISTORY</div>
+  </div>
+  <div class="tab-item" id="tab-btn-merchants" onclick="showPage('merchants',this)">
+    <div class="tab-icon">🏪</div>
+    <div class="tab-label">MERCHANTS</div>
+  </div>
+  <div class="tab-item" id="tab-btn-payroll" onclick="showPage('payroll',this)">
+    <div class="tab-icon">💰</div>
+    <div class="tab-label">PAYROLL</div>
+  </div>
+</div>
+
 <div class="toast" id="toast"><span class="t-icon">✅</span><span id="toast-msg">Done!</span></div>
 
 <script type="module">
@@ -1022,7 +568,7 @@ td{padding:14px 16px;font-size:13px;color:var(--text);}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore, collection, doc, onSnapshot, updateDoc,
-  query, orderBy, increment, serverTimestamp
+  query, where, orderBy, getDocs, setDoc, increment, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1056,6 +602,17 @@ const menus = [
 ];
 
 // ═══════════════════════════════════════════════════════
+//  SPLASH → LOGIN
+// ═══════════════════════════════════════════════════════
+setTimeout(() => {
+  const splash = document.getElementById('boss-splash');
+  setTimeout(() => {
+    splash.style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+  }, 500);
+}, 2800);
+
+// ═══════════════════════════════════════════════════════
 //  LOGIN
 // ═══════════════════════════════════════════════════════
 function doLogin(){
@@ -1080,9 +637,134 @@ window.doLogout=doLogout;
 // ═══════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  MERCHANTS
+// ═══════════════════════════════════════════════════════
+let merchants = [];
+
+function showAddMerchant(){ document.getElementById('add-merchant-form').style.display='block'; }
+window.showAddMerchant = showAddMerchant;
+
+async function saveMerchant(){
+  const id    = document.getElementById('nm-id').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const name  = document.getElementById('nm-name').value.trim();
+  const cat   = document.getElementById('nm-cat').value.trim();
+  const pass  = document.getElementById('nm-pass').value.trim();
+  const emoji = document.getElementById('nm-emoji').value.trim()||'🏪';
+  const errEl = document.getElementById('merchant-save-err');
+  if(!id||!name||!pass){ errEl.textContent='⚠️ Fill all fields'; errEl.style.display='block'; return; }
+  try{
+    const ref = doc(db,'merchants',id);
+    await updateDoc(ref,{}).catch(async()=>{
+      const {setDoc} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+      await setDoc(ref,{
+        merchantId:id, name, category:cat||'Food', emoji, password:pass,
+        commissionRate:0.04, status:'active', createdAt:new Date().toISOString(),
+      });
+    });
+    document.getElementById('add-merchant-form').style.display='none';
+    ['nm-id','nm-name','nm-cat','nm-pass','nm-emoji'].forEach(i=>document.getElementById(i).value='');
+    showToast('✅ Merchant saved!');
+  }catch(e){ errEl.textContent='❌ '+e.message; errEl.style.display='block'; }
+}
+window.saveMerchant = saveMerchant;
+
+async function uploadQR(docId, input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('⚠️ Image too large (max 2MB)'); return; }
+
+  // Compress QR image
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = async () => {
+    const canvas = document.createElement('canvas');
+    const MAX = 400;
+    let w = img.width, h = img.height;
+    if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+    if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
+    URL.revokeObjectURL(url);
+
+    try {
+      await updateDoc(doc(db,'merchants',docId),{ qrCode: base64 });
+      showToast('✅ QR code uploaded!');
+    } catch(e) { showToast('❌ '+e.message); }
+  };
+  img.src = url;
+}
+window.uploadQR = uploadQR;
+
+async function toggleMerchant(docId,status){
+  const ns = status==='active'?'suspended':'active';
+  try{ await updateDoc(doc(db,'merchants',docId),{status:ns}); showToast(ns==='active'?'✅ Activated':'🚫 Suspended'); }
+  catch(e){ showToast('❌ '+e.message); }
+}
+window.toggleMerchant = toggleMerchant;
+
+function renderMerchants(){
+  const wrap = document.getElementById('merchants-list');
+  if(!wrap) return;
+  if(!merchants.length){
+    wrap.innerHTML='<div class="empty-state"><div class="e-icon">🏪</div><div class="e-title">No merchants yet</div><div class="e-sub">Add your first merchant above</div></div>';
+    return;
+  }
+  wrap.innerHTML = merchants.map(m=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="width:48px;height:48px;border-radius:14px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:24px;">${m.emoji||'🏪'}</div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:700;color:var(--cream);">${m.name}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;">${m.merchantId} · ${m.category||'Food'}</div>
+        </div>
+        <span style="font-size:10px;font-weight:700;padding:4px 12px;border-radius:100px;background:${m.status==='active'?'var(--matcha-dim)':'var(--red-dim)'};color:${m.status==='active'?'var(--matcha2)':'var(--red)'};">${(m.status||'active').toUpperCase()}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:11px;color:var(--text3);">Commission</div>
+          <div style="font-size:16px;font-weight:700;color:var(--matcha2);">${((m.commissionRate||0.04)*100).toFixed(0)}% delivery</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:11px;color:var(--text3);">Pick Up</div>
+          <div style="font-size:16px;font-weight:700;color:var(--cream);">0% free</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        ${m.qrCode ? `
+        <div style="flex:1;background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:6px;font-weight:600;letter-spacing:.08em;">TNG QR CODE</div>
+          <img src="${m.qrCode}" style="width:80px;height:80px;object-fit:contain;border-radius:6px;cursor:pointer;" onclick="window.open('${m.qrCode}')">
+        </div>` : `
+        <div style="flex:1;background:var(--bg3);border-radius:10px;padding:10px;text-align:center;border:1.5px dashed var(--border2);">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:4px;">NO QR CODE</div>
+          <div style="font-size:11px;color:var(--text3);">Upload below</div>
+        </div>`}
+        <div style="flex:1;">
+          <label style="display:block;background:var(--blue-dim);border:1px solid var(--blue);border-radius:10px;padding:10px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;color:var(--blue);">
+            📎 Upload QR
+            <input type="file" accept="image/*" style="display:none;" onchange="uploadQR('${m.docId}',this)">
+          </label>
+        </div>
+      </div>
+      <button onclick="toggleMerchant('${m.docId}','${m.status||'active'}')"
+        style="width:100%;background:${m.status==='active'?'var(--red-dim)':'var(--matcha-dim)'};border:none;border-radius:10px;padding:11px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;color:${m.status==='active'?'var(--red)':'var(--matcha2)'};">
+        ${m.status==='active'?'🚫 Suspend Merchant':'✅ Activate Merchant'}
+      </button>
+    </div>`).join('');
+}
+
 function initDashboard(){
   startClock();
   renderMenu();
+
+  // Listen merchants
+  onSnapshot(collection(db,'merchants'), snap=>{
+    merchants=[];
+    snap.forEach(d=>merchants.push({docId:d.id,...d.data()}));
+    renderMerchants();
+  });
 
   // Listen ALL orders — no orderBy so orders without timestamp also load
   onSnapshot(collection(db,'orders'), snap=>{
@@ -1108,6 +790,17 @@ function initDashboard(){
   onSnapshot(qr, snap=>{
     riders=[];
     snap.forEach(d=>riders.push({ docId:d.id, ...d.data() }));
+    // Auto-reset stale isOnline — if rider hasn't updated in >30min, mark offline
+    const thirtyMin = 30 * 60 * 1000;
+    riders.forEach(async r => {
+      if(r.isOnline === true) {
+        const lastSeen = r.lastSeenAt ? new Date(r.lastSeenAt).getTime() : 0;
+        const stale = !r.lastSeenAt || (Date.now() - lastSeen > thirtyMin);
+        if(stale) {
+          try { await updateDoc(doc(db,'riders',r.docId), { isOnline: false }); } catch(e){}
+        }
+      }
+    });
     renderRiders();
     renderPayroll();
   });
@@ -1129,6 +822,7 @@ function showPage(name,el){
   if(name==='history')  renderHistory();
   if(name==='payroll')  renderPayroll();
   if(name==='riders')   renderRiders();
+  if(name==='merchants') renderMerchants();
 }
 window.showPage=showPage;
 
@@ -1152,39 +846,36 @@ function renderOrders(){
   }
   container.innerHTML=filtered.map((o,i)=>`
     <div class="order-card ${o.status}" style="animation-delay:${i*0.04}s">
-      <div class="order-num"><span class="num">#${o.code?.slice(-3)||'—'}</span><span style="font-size:9px;color:var(--text3);">${timeAgo(o.time)}</span></div>
       <div class="order-info">
-        <div class="order-top">
-          <span class="order-name">${o.name}</span>
+        <!-- Row 1: code + badges + total -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+          <span style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--cream);">#${o.code?.slice(-4)||'—'}</span>
+          <span style="font-size:10px;color:var(--text3);">⏱ ${timeAgo(o.time)}</span>
           <span class="order-type-badge ${o.type==='delivery'?'badge-delivery':'badge-pickup'}">${o.type==='delivery'?'🛵 Delivery':'🛍 Pick Up'}</span>
           <span class="order-status-badge status-${o.status}">${statusLabel(o.status)}</span>
-          ${o.rider?`<span style="font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;">🛵 ${o.rider}</span>`:''}
+          <span style="margin-left:auto;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--matcha);">RM ${(o.total||0).toFixed(2)}</span>
         </div>
-        <div class="order-items">
-          ${(o.items||[]).map(it=>`<span>${it.emoji} ${it.name}</span> ×${it.qty} <span style="color:var(--text3);font-size:11px;">(${it.custom})</span><br>`).join('')}
-          ${o.address?`<span style="color:var(--blue);font-size:11px;">📍 ${o.address}</span>`:''}
-        </div>
-        <div class="order-meta">
+        <!-- Row 2: customer name + phone -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+          <span style="font-size:14px;font-weight:700;color:var(--cream);">${o.name}</span>
           <span class="phone">📞 ${o.phone}</span>
-          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">💳 ${o.paymentMethod||'TNG'} · <span style="color:${o.paymentStatus==='verified'?'var(--matcha2)':'var(--amber)'}">${o.paymentStatus==='verified'?'✅ AI Verified':'⏳ Pending'}</span></span>
+          ${o.rider?`<span style="font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;margin-left:auto;">🛵 ${o.rider}</span>`:''}
         </div>
-        ${(o.screenshotBase64 || o.screenshotURL) ? `
-        <div style="margin-top:10px;">
-          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:5px;">
-            💳 PAYMENT RECEIPT <span style="color:var(--matcha2);">✅ AI Verified</span>
+        <!-- Row 3: items -->
+        <div class="order-items">
+          ${(o.items||[]).map(it=>`${it.emoji} <b>${it.name}</b> ×${it.qty} <span style="color:var(--text3);font-size:11px;">(${it.custom||''})</span>`).join(' &nbsp;·&nbsp; ')}
+          ${o.address?`<br><span style="color:var(--blue);font-size:11px;">📍 ${o.address}</span>`:''}
+        </div>
+        <!-- Row 4: payment + actions -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">
+            💳 ${o.paymentMethod||'TNG'}
+            ${o.paymentStatus==='ai_verified'||o.screenshotBase64?'<span style="color:var(--matcha2);">· ✅ Verified</span>':o.paymentMethod==='Cash'?'<span style="color:var(--amber);">· Pay at counter</span>':''}
+          </span>
+          <div style="display:flex;gap:8px;align-items:center;">
+            ${actionButtons(o)}
           </div>
-          <img src="${o.screenshotBase64 ? 'data:image/jpeg;base64,'+o.screenshotBase64 : o.screenshotURL}"
-            style="width:100%;max-height:200px;object-fit:contain;border-radius:10px;border:1px solid var(--border2);cursor:pointer;background:var(--bg3);"
-            onclick="showFullReceipt('${o.docId}')"
-            title="Click to enlarge">
-        </div>` : o.paymentStatus === 'ai_verified' ? `
-        <div style="margin-top:8px;background:var(--matcha-dim);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--matcha2);">
-          ✅ AI Verified payment
-        </div>` : ''}
-      </div>
-      <div class="order-actions">
-        <div class="order-total">RM ${(o.total||0).toFixed(2)}</div>
-        ${actionButtons(o)}
+        </div>
       </div>
     </div>`).join('');
 }
@@ -1195,12 +886,14 @@ function statusLabel(s){
 
 function actionButtons(o){
   const id=o.docId;
-  if(o.status==='new')       return `<button class="action-btn btn-accept" onclick="updateStatus('${id}','preparing')">✅ Accept & Prepare</button><button class="action-btn btn-reject" onclick="updateStatus('${id}','done')">✗ Reject</button>`;
-  if(o.status==='preparing') return `<button class="action-btn btn-ready" onclick="updateStatus('${id}','ready')">✅ Food Ready</button>`;
+  // Admin only handles: Assign Rider + monitor
+  // Accept/Prepare/Ready = merchant's job
+  if(o.status==='new')        return `<div style="font-size:11px;color:var(--amber);font-family:'DM Mono',monospace;padding:6px 0;">⏳ Waiting for merchant to accept…</div>`;
+  if(o.status==='preparing')  return `<div style="font-size:11px;color:var(--amber);font-family:'DM Mono',monospace;padding:6px 0;">🍳 Merchant is preparing…</div>`;
   if(o.status==='ready'&&o.type==='delivery') return `<button class="action-btn btn-assign" onclick="openAssign('${id}','${o.name}','${o.address||''}')">🛵 Assign Rider</button>`;
-  if(o.status==='ready'&&o.type==='pickup')   return `<button class="action-btn btn-done" onclick="updateStatus('${id}','done')">✅ Customer Picked Up</button>`;
-  if(o.status==='delivering') return `<button class="action-btn btn-done" onclick="updateStatus('${id}','done')">✅ Delivered</button>`;
-  if(o.status==='done')       return `<span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">COMPLETED</span>`;
+  if(o.status==='ready'&&o.type==='pickup')   return `<div style="font-size:11px;color:var(--matcha2);font-family:'DM Mono',monospace;padding:6px 0;">🟢 Ready — waiting for customer pickup</div>`;
+  if(o.status==='delivering') return `<div style="font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;padding:6px 0;">🛵 Out for delivery…</div>`;
+  if(o.status==='done')       return `<span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">✅ COMPLETED</span>`;
   return '';
 }
 
@@ -1225,7 +918,8 @@ function updateStats(){
   document.getElementById('stat-new').textContent        = orders.filter(o=>o.status==='new').length;
   document.getElementById('stat-preparing').textContent  = orders.filter(o=>o.status==='preparing').length;
   document.getElementById('stat-delivering').textContent = orders.filter(o=>o.status==='delivering').length;
-  const rev=orders.filter(o=>o.status==='done').reduce((s,o)=>s+(o.total||0),0);
+  const done = orders.filter(o=>o.status==='done');
+  const rev  = done.reduce((s,o)=>s+(o.total||0),0);
   document.getElementById('stat-revenue').textContent    = 'RM '+rev.toFixed(0);
 }
 function updateNewBadge(){
@@ -1243,16 +937,27 @@ function updateNewBadge(){
 function openAssign(docId,name,address){
   assigningDocId=docId; selectedRiderId=null;
   document.getElementById('modal-order-info').textContent=`${name} · ${address||'Pickup'}`;
-  const activeRiders=riders.filter(r=>r.status==='active');
-  document.getElementById('rider-list').innerHTML = activeRiders.length
-    ? activeRiders.map(r=>`
+  // Only show riders who are ACTIVE and ONLINE
+  const onlineRiders = riders.filter(r => r.status==='active' && r.isOnline===true);
+  const activeRiders = riders.filter(r => r.status==='active');
+  document.getElementById('rider-list').innerHTML = onlineRiders.length
+    ? onlineRiders.map(r=>`
         <div class="rider-item" id="ri-${r.docId}" onclick="selectRider('${r.docId}')">
           <div class="rider-avatar">🧑</div>
-          <div><div class="rider-name">${r.name}</div><div class="rider-info">${r.phone} · ${r.wallet||'TNG'}: ${r.tngPhone||r.bankAccount||'—'}</div></div>
+          <div>
+            <div class="rider-name">${r.name}</div>
+            <div class="rider-info">${r.phone} · ${r.vehicle||'—'} ${r.plateNumber?'· '+r.plateNumber:''}</div>
+          </div>
           <div class="rider-status-dot"></div>
-          <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--matcha2);">ACTIVE</span>
+          <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--matcha2);">🟢 ONLINE</span>
         </div>`).join('')
-    : `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No active riders available.<br>Approve riders in the Riders tab first.</div>`;
+    : activeRiders.length
+    ? `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">
+         <div style="font-size:28px;margin-bottom:8px;">🔴</div>
+         <div style="font-weight:600;color:var(--cream);margin-bottom:4px;">${activeRiders.length} rider${activeRiders.length>1?'s':''} registered but all offline</div>
+         Ask them to go Online in the Rider App first.
+       </div>`
+    : `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No active riders.<br>Approve riders in the Riders tab first.</div>`;
   document.getElementById('rider-modal').style.display='flex';
 }
 window.openAssign=openAssign;
@@ -1291,33 +996,46 @@ function renderRiders(){
   const statusColor={active:'var(--matcha2)',pending:'var(--amber)',suspended:'var(--red)'};
   const statusBg   ={active:'var(--matcha-dim)',pending:'var(--amber-dim)',suspended:'var(--red-dim)'};
 
-  wrap.innerHTML=`<div class="rider-table-wrap"><table>
-    <thead><tr>
-      <th>Rider</th><th>Student ID</th><th>Age</th><th>Phone</th>
-      <th>Wallet</th><th>Today</th><th>Total Earned</th><th>Unpaid</th><th>Status</th><th>Action</th>
-    </tr></thead>
-    <tbody>
-      ${riders.map(r=>`<tr>
-        <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:32px;height:32px;border-radius:50%;background:var(--matcha-dim);display:flex;align-items:center;justify-content:center;">🧑</div><b>${r.name}</b></div></td>
-        <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);">${r.sid||'—'}</td>
-        <td style="font-size:12px;">${r.age||'—'}</td>
-        <td style="color:var(--milo);font-family:'DM Mono',monospace;font-size:12px;">${r.phone}</td>
-        <td style="font-size:12px;">
-          <div style="font-weight:600;">${r.wallet||'TNG'}</div>
-          <div style="color:var(--text3);font-size:11px;font-family:'DM Mono',monospace;">${r.tngPhone||r.bankAccount||'—'}</div>
-        </td>
-        <td style="font-weight:600;">RM ${(r.todayEarnings||0).toFixed(2)}</td>
-        <td style="color:var(--matcha);font-weight:700;font-family:'DM Mono',monospace;">RM ${(r.totalEarnings||0).toFixed(2)}</td>
-        <td style="color:${(r.unpaidEarnings||0)>0?'var(--amber)':'var(--text3)'};font-weight:700;font-family:'DM Mono',monospace;">RM ${(r.unpaidEarnings||0).toFixed(2)}</td>
-        <td><span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;font-family:'DM Mono',monospace;background:${statusBg[r.status||'pending']};color:${statusColor[r.status||'pending']};">${(r.status||'pending').toUpperCase()}</span></td>
-        <td style="display:flex;gap:4px;flex-wrap:wrap;min-width:160px;">
-          ${r.status==='pending'?`<button onclick="setRiderStatus('${r.docId}','active')" style="background:var(--matcha);border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;color:#fff;font-weight:700;">✅ Approve</button>`:''}
-          ${r.status==='active'?`<button onclick="setRiderStatus('${r.docId}','suspended')" style="background:var(--red-dim);border:1px solid var(--red-dim);border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;color:var(--red);">Suspend</button>`:''}
-          ${r.status==='suspended'?`<button onclick="setRiderStatus('${r.docId}','active')" style="background:var(--matcha-dim);border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;color:var(--matcha2);">Reactivate</button>`:''}
-        </td>
-      </tr>`).join('')}
-    </tbody>
-  </table></div>`;
+  wrap.innerHTML = riders.map(r=>`
+    <div class="rider-card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="width:44px;height:44px;border-radius:14px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🧑</div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:700;color:var(--cream);">${r.name}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace;">${r.sid||''} · ${r.phone}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;background:${statusBg[r.status||'pending']};color:${statusColor[r.status||'pending']};">${(r.status||'pending').toUpperCase()}</span>
+          <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;background:${r.isOnline?'rgba(76,175,125,0.15)':'var(--bg3)'};color:${r.isOnline?'var(--matcha2)':'var(--text3)'};">${r.isOnline?'🟢 Online':'⚫ Offline'}</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:15px;font-weight:700;color:var(--cream);">RM ${(r.todayEarnings||0).toFixed(0)}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">TODAY</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:15px;font-weight:700;color:var(--cream);">RM ${(r.totalEarnings||0).toFixed(0)}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">TOTAL</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-size:15px;font-weight:700;color:${(r.unpaidEarnings||0)>0?'var(--amber)':'var(--text3)'};">RM ${(r.unpaidEarnings||0).toFixed(0)}</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">UNPAID</div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg3);border-radius:10px;padding:10px;margin-bottom:10px;font-size:12px;color:var(--text2);">
+        ${r.vehicle==='motorcycle'?'🏍️':r.vehicle==='bicycle'?'🚲':'🚶'} ${r.vehicle||'—'} ${r.plateNumber?'· '+r.plateNumber:''} &nbsp;·&nbsp;
+        💳 ${r.wallet||'TNG'}: ${r.tngPhone||r.bankAccount||'—'}
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        ${r.status==='pending'?`<button onclick="setRiderStatus('${r.docId}','active')" style="flex:1;background:var(--matcha2);border:none;border-radius:var(--r2);padding:11px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:#0B1120;">✅ Approve</button>`:''}
+        ${r.status==='active'?`<button onclick="setRiderStatus('${r.docId}','suspended')" style="flex:1;background:var(--red-dim);border:none;border-radius:var(--r2);padding:11px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;color:var(--red);">Suspend</button>`:''}
+        ${r.status==='suspended'?`<button onclick="setRiderStatus('${r.docId}','active')" style="flex:1;background:var(--matcha-dim);border:none;border-radius:var(--r2);padding:11px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;color:var(--matcha2);">Reactivate</button>`:''}
+      </div>
+    </div>`).join('');
 }
 
 async function setRiderStatus(docId, status){
@@ -1333,11 +1051,92 @@ window.setRiderStatus=setRiderStatus;
 // ═══════════════════════════════════════════════════════
 function renderPayroll(){
   const wrap=document.getElementById('payroll-wrap');
-  const activeRiders=riders.filter(r=>r.status==='active'||r.unpaidEarnings>0);
 
-  const totalUnpaid=riders.reduce((s,r)=>s+(r.unpaidEarnings||0),0);
+  const totalUnpaid    = riders.reduce((s,r)=>s+(r.unpaidEarnings||0),0);
+  const doneOrders     = orders.filter(o=>o.status==='done');
+
+  // Platform revenue = service fees + 4% commissions + delivery fees
+  const totalServiceFee  = doneOrders.reduce((s,o)=>s+(o.serviceFee||0.50),0);
+  const totalCommission  = doneOrders.reduce((s,o)=>s+(o.platformComm||0),0);
+  const totalDeliveryFee = doneOrders.reduce((s,o)=>s+(o.deliveryFee||0),0);
+  const totalPlatformRev = totalServiceFee + totalCommission + totalDeliveryFee;
+
+  // This month
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+  const thisMonth  = doneOrders.filter(o=>o.time>=monthStart);
+  const monthServiceFee  = thisMonth.reduce((s,o)=>s+(o.serviceFee||0.50),0);
+  const monthCommission  = thisMonth.reduce((s,o)=>s+(o.platformComm||0),0);
+  const monthDeliveryFee = thisMonth.reduce((s,o)=>s+(o.deliveryFee||0),0);
+  const monthPlatformRev = monthServiceFee + monthCommission + monthDeliveryFee;
+
+  // Today
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const todayOrders = doneOrders.filter(o=>o.time>=todayStart);
+  const todayServiceFee  = todayOrders.reduce((s,o)=>s+(o.serviceFee||0.50),0);
+  const todayCommission  = todayOrders.reduce((s,o)=>s+(o.platformComm||0),0);
+  const todayDeliveryFee = todayOrders.reduce((s,o)=>s+(o.deliveryFee||0),0);
+  const todayPlatformRev = todayServiceFee + todayCommission + todayDeliveryFee;
 
   let html=`
+    <!-- Platform Revenue Summary -->
+    <div style="background:linear-gradient(135deg,rgba(27,63,160,0.3),rgba(27,63,160,0.05));border:1px solid rgba(77,159,255,0.25);border-radius:var(--r);padding:20px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--blue);font-weight:700;letter-spacing:.1em;font-family:'DM Mono',monospace;">📊 MIDI PLATFORM REVENUE</div>
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">TNG: 019-7557555</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:4px;">THIS MONTH</div>
+          <div style="font-size:22px;font-weight:800;color:var(--cream);">RM ${monthPlatformRev.toFixed(2)}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:4px;">ALL TIME</div>
+          <div style="font-size:22px;font-weight:800;color:var(--cream);">RM ${totalPlatformRev.toFixed(2)}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;">
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">SERVICE FEE</div>
+          <div style="font-size:14px;font-weight:700;color:var(--cream);margin-top:2px;">RM ${totalServiceFee.toFixed(2)}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;">
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">COMMISSION 4%</div>
+          <div style="font-size:14px;font-weight:700;color:var(--cream);margin-top:2px;">RM ${totalCommission.toFixed(2)}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:10px;">
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">DELIVERY FEE 🛵</div>
+          <div style="font-size:14px;font-weight:700;color:var(--cream);margin-top:2px;">RM ${totalDeliveryFee.toFixed(2)}</div>
+        </div>
+      </div>
+
+      <!-- Today settlement -->
+      <div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:6px;">TODAY'S SETTLEMENT</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:20px;font-weight:800;color:var(--cream);">RM ${todayPlatformRev.toFixed(2)}</div>
+            <div style="font-size:11px;color:var(--text3);">Service fees + commissions today</div>
+          </div>
+          <div style="font-size:11px;color:var(--text3);text-align:right;">
+            → TNG<br><b style="color:var(--cream);">019-7557555</b>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <a href="https://wa.me/60197557555?text=${encodeURIComponent('MIDI Daily Settlement%0ADate: '+new Date().toLocaleDateString('en-MY')+'%0AService Fee: RM '+totalServiceFee.toFixed(2)+'%0ACommission: RM '+totalCommission.toFixed(2)+'%0ATotal: RM '+totalPlatformRev.toFixed(2))}"
+          target="_blank"
+          style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:11px;font-size:12px;font-weight:600;color:var(--text2);text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;">
+          📲 WhatsApp Summary
+        </a>
+        <button onclick="markSettled(${totalPlatformRev})"
+          style="flex:2;background:var(--blue2);border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;color:#fff;box-shadow:0 4px 16px rgba(41,121,216,0.3);">
+          ✅ Mark Today as Settled · RM ${todayPlatformRev.toFixed(2)}
+        </button>
+      </div>
+    </div>
+
+    <!-- Rider Payouts -->
     <div style="background:linear-gradient(135deg,var(--matcha-dim),rgba(122,158,90,0.05));border:1px solid rgba(122,158,90,0.2);border-radius:var(--r);padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:16px;">
       <div style="font-size:36px;">💰</div>
       <div>
@@ -1347,13 +1146,19 @@ function renderPayroll(){
       </div>
     </div>`;
 
+  // ── Pending merchant settlements ──
+  html += `<div class="section-title" style="margin-top:4px;">🏪 MERCHANT SETTLEMENTS</div>`;
+  html += `<div id="admin-settlements-list"><div class="empty-state"><div class="e-icon">⏳</div><div class="e-title">Loading…</div></div></div>`;
+
   if(!riders.length){
     wrap.innerHTML=html+`<div class="empty-state"><div class="e-icon">🛵</div><div class="e-title">No riders yet</div></div>`;
+    loadAdminSettlements();
     return;
   }
 
   html += riders.map(r=>{
     const unpaid=r.unpaidEarnings||0;
+    const delivOrders = r.completedOrders ? r.completedOrders.filter(o=>o.earning>0).length : 0;
     const payInfo = r.wallet==='TNG'
       ? `Touch \'n Go → <b>${r.tngPhone||'—'}</b>`
       : `DuitNow → <b>${r.bankName} ${r.bankAccount||'—'}</b>`;
@@ -1371,10 +1176,10 @@ function renderPayroll(){
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
         <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
           <div style="font-size:16px;font-weight:700;color:var(--cream);">${r.totalOrders||0}</div>
-          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">TOTAL ORDERS</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">DELIVERIES</div>
         </div>
         <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
           <div style="font-size:16px;font-weight:700;color:var(--cream);">RM ${(r.totalEarnings||0).toFixed(0)}</div>
@@ -1386,6 +1191,10 @@ function renderPayroll(){
         </div>
       </div>
 
+      <div style="background:rgba(122,158,90,0.08);border:1px solid rgba(122,158,90,0.2);border-radius:10px;padding:10px;margin-bottom:10px;font-size:12px;color:var(--text2);">
+        💰 RM 2.00 per delivery order × ${r.totalOrders||0} orders = <b style="color:var(--matcha);">RM ${(r.totalEarnings||0).toFixed(2)}</b>
+      </div>
+
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;font-size:13px;color:var(--text2);">
         💳 Pay via: ${payInfo}
       </div>
@@ -1393,7 +1202,7 @@ function renderPayroll(){
       ${unpaid>0 ? `
       <div style="display:flex;gap:8px;">
         <a href="${r.wallet==='TNG'
-          ? 'https://wa.me/6'+r.tngPhone+'?text=Hi+'+encodeURIComponent(r.name)+',+here+is+your+payment+of+RM+'+unpaid.toFixed(2)+'+from+Soy+%26+Oden.+Thank+you!'
+          ? 'https://wa.me/6'+r.tngPhone+'?text=Hi+'+encodeURIComponent(r.name)+',+here+is+your+delivery+fee+payment+of+RM+'+unpaid.toFixed(2)+'+from+MIDI.+Thank+you!'
           : '#'}"
           target="_blank"
           style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);padding:12px;font-size:13px;font-weight:600;color:var(--text2);text-decoration:none;text-align:center;">
@@ -1401,17 +1210,46 @@ function renderPayroll(){
         </a>
         <button onclick="markPaid('${r.docId}','${r.name}',${unpaid})"
           style="flex:2;background:var(--matcha);border:none;border-radius:var(--r2);padding:12px;font-size:14px;font-weight:700;cursor:pointer;color:#fff;box-shadow:0 4px 16px rgba(122,158,90,0.3);">
-          ✅ Mark as Paid · RM ${unpaid.toFixed(2)}
+          ✅ Pay Delivery Fee · RM ${unpaid.toFixed(2)}
         </button>
       </div>` : `
       <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;font-size:13px;color:var(--text3);">
-        ✅ All paid up
+        ✅ All delivery fees paid
       </div>`}
     </div>`;
   }).join('');
 
   wrap.innerHTML=html;
 }
+
+async function markSettled(amount){
+  if(amount <= 0){ showToast('⚠️ No revenue to settle today'); return; }
+  if(!confirm(`Confirm settlement of RM ${amount.toFixed(2)} to TNG 019-7557555?`)) return;
+  try {
+    const {setDoc} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(doc(db,'settlements',new Date().toISOString().slice(0,10)),{
+      date:     new Date().toISOString().slice(0,10),
+      amount,
+      tng:      '019-7557555',
+      settledAt: new Date().toISOString(),
+    });
+    showToast(`✅ RM ${amount.toFixed(2)} settlement recorded!`);
+  } catch(e){ showToast('❌ '+e.message); }
+}
+window.markSettled=markSettled;
+
+async function confirmSettlement(docId, merchantName, amount){
+  if(!confirm('Confirm received RM '+Number(amount).toFixed(2)+' from '+merchantName+'?')) return;
+  try{
+    await updateDoc(doc(db,'settlements',docId),{
+      status:'confirmed',
+      confirmedAt: new Date().toISOString(),
+    });
+    showToast('✅ Settlement confirmed!');
+    loadAdminSettlements();
+  }catch(e){ showToast('❌ '+e.message); }
+}
+window.confirmSettlement=confirmSettlement;
 
 async function markPaid(docId, name, amount){
   if(!confirm(`Mark RM ${amount.toFixed(2)} as paid to ${name}?`)) return;
@@ -1425,6 +1263,80 @@ async function markPaid(docId, name, amount){
   }catch(e){ showToast('❌ '+e.message); }
 }
 window.markPaid=markPaid;
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN SETTLEMENTS
+// ═══════════════════════════════════════════════════════
+async function loadAdminSettlements(){
+  const list=document.getElementById('admin-settlements-list');
+  if(!list) return;
+  try{
+    const snap=await getDocs(query(collection(db,'settlements'),orderBy('submittedAt','desc')));
+    if(snap.empty){
+      list.innerHTML='<div class="empty-state"><div class="e-icon">🏦</div><div class="e-title">No settlements yet</div><div class="e-sub">Merchants submit daily via their app</div></div>';
+      return;
+    }
+    const items=[];
+    snap.forEach(d=>items.push({docId:d.id,...d.data()}));
+
+    list.innerHTML=items.map(s=>`
+      <div style="background:var(--card);border:1px solid ${s.status==='confirmed'?'rgba(76,175,125,0.3)':'rgba(245,158,11,0.25)'};border-radius:var(--r);padding:16px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div style="width:40px;height:40px;border-radius:12px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px;">${s.status==='confirmed'?'✅':'⏳'}</div>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:700;color:var(--cream);">${s.merchantName||s.merchantId}</div>
+            <div style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">${s.date} · ${s.orderCount||0} orders</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:18px;font-weight:800;color:${s.status==='confirmed'?'var(--matcha2)':'var(--amber)'};">RM ${(s.amount||0).toFixed(2)}</div>
+            <div style="font-size:10px;color:var(--text3);">${s.status==='confirmed'?'Confirmed':'Pending'}</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:13px;font-weight:700;color:var(--cream);">RM ${(s.serviceFee||0).toFixed(2)}</div>
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">SERVICE FEE</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:13px;font-weight:700;color:var(--cream);">RM ${(s.commission||0).toFixed(2)}</div>
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">COMMISSION</div>
+          </div>
+          <div style="background:rgba(77,159,255,0.1);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:13px;font-weight:700;color:var(--accent);">RM ${(s.deliveryFee||0).toFixed(2)}</div>
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;">🛵 RIDER FEE</div>
+          </div>
+        </div>
+
+        ${(s.deliveryFee||0)>0?`
+        <div style="background:rgba(77,159,255,0.08);border:1px solid rgba(77,159,255,0.15);border-radius:10px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--accent);">
+          🛵 Pay RM ${(s.deliveryFee||0).toFixed(2)} to riders via Payroll tab after confirming
+        </div>`:''}
+
+        ${s.screenshot?`
+        <div style="margin-bottom:12px;">
+          <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:6px;">TRANSFER PROOF</div>
+          <img src="data:image/jpeg;base64,${s.screenshot}"
+            style="width:100%;max-height:160px;object-fit:contain;border-radius:10px;border:1px solid var(--border2);cursor:pointer;"
+            style="cursor:pointer;" onclick="viewScreenshot(this)" data-src="${s.screenshot}"
+            title="Tap to enlarge">
+        </div>`:'<div style="font-size:12px;color:var(--text3);margin-bottom:12px;padding:10px;background:var(--bg3);border-radius:10px;">⚠️ No screenshot uploaded</div>'}
+
+        ${s.status!=='confirmed'?`
+        <button onclick="confirmSettlement('${s.docId}','${s.merchantName||s.merchantId}',${s.amount||0})"
+          style="width:100%;background:var(--matcha2);border:none;border-radius:var(--r2);padding:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:#0B1120;box-shadow:0 4px 16px rgba(76,175,125,0.3);">
+          ✅ Confirm Received · RM ${(s.amount||0).toFixed(2)}
+        </button>`:`
+        <div style="background:rgba(76,175,125,0.1);border-radius:10px;padding:10px;text-align:center;font-size:12px;color:var(--matcha2);font-weight:600;">
+          ✅ Confirmed on ${(s.confirmedAt||'').slice(0,10)||'—'}
+        </div>`}
+      </div>`).join('');
+  }catch(e){
+    console.error(e);
+    if(list) list.innerHTML='<div class="empty-state"><div class="e-title">'+e.message+'</div></div>';
+  }
+}
+window.loadAdminSettlements=loadAdminSettlements;
 
 // ═══════════════════════════════════════════════════════
 //  HISTORY
@@ -1560,6 +1472,14 @@ window.addDemoOrder=function(){ showToast('ℹ️ Orders come from the customer 
 window.showAddRider=function(){};
 window.closeAddRider=function(){};
 window.saveRider=function(){};
+// Helper to view base64 screenshot
+function viewScreenshot(el){
+  const src = el.getAttribute('data-src');
+  if(!src) return;
+  const w = window.open();
+  w.document.write('<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="data:image/jpeg;base64,'+src+'" style="max-width:100%;max-height:100vh;object-fit:contain;"></body></html>');
+}
+window.viewScreenshot=viewScreenshot;
 </script>
 </body>
 </html>
