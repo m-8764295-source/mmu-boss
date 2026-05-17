@@ -176,6 +176,7 @@
   <div class="tabs">
     <div class="tab active"  onclick="switchTab('orders',this)">📦 All Orders</div>
     <div class="tab" onclick="switchTab('users',this)">👤 Users</div>
+    <div class="tab" onclick="switchTab('riders',this)">🛵 Riders</div>
     <div class="tab" onclick="switchTab('revenue',this)">💰 Revenue</div>
   </div>
 
@@ -240,6 +241,18 @@
       </div>
     </div>
 
+    <!-- ══ RIDERS TAB ══ -->
+    <div id="tab-riders" style="display:none;">
+      <div class="toolbar">
+        <input class="search-box" type="text" placeholder="🔍  Search riders…" oninput="filterRiders(this.value)" id="rider-search">
+      </div>
+      <div class="users-grid" id="riders-grid"></div>
+      <div class="empty" id="riders-empty" style="display:none;">
+        <div class="empty-icon">🛵</div>
+        <div class="empty-text">No riders signed up yet</div>
+      </div>
+    </div>
+
     <!-- ══ REVENUE TAB ══ -->
     <div id="tab-revenue" style="display:none;">
       <div class="stats-row" style="margin-bottom:24px;">
@@ -278,10 +291,6 @@
   </div>
 </div>
 
-<!-- ── Rider modal ── -->
-<div class="modal-overlay" id="rider-modal">
-  <div class="modal">
-    <div class="modal-title">🛵 Assign Rider</div>
     <div class="modal-sub" id="rider-modal-sub">Order #—</div>
     <input class="modal-input" id="rider-name" placeholder="Rider name…">
     <input class="modal-input" id="rider-phone" placeholder="Rider phone (optional)">
@@ -330,6 +339,7 @@ const auth = getAuth(app);
 
 let allOrders  = [];
 let allUsers   = [];
+let allRiders  = [];
 let activeTab  = 'orders';
 let filterMch  = 'all';
 let filterSt   = 'all';
@@ -338,6 +348,7 @@ let userSearchQ = '';
 let riderTarget = null;
 let unsubOrders = null;
 let unsubUsers  = null;
+let unsubRiders = null;
 
 // ── Auth ──
 window.doLogin = async () => {
@@ -401,6 +412,17 @@ function startListening() {
     });
     renderUsers();
   });
+  // Riders
+  const rq = query(collection(db,'riders'));
+  unsubRiders = onSnapshot(rq, snap => {
+    allRiders = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    allRiders.sort((a,b) => {
+      const ta = a.createdAt ? new Date(a.createdAt) : new Date(0);
+      const tb = b.createdAt ? new Date(b.createdAt) : new Date(0);
+      return tb - ta;
+    });
+    renderRiders();
+  });
 }
 
 // ── Stats ──
@@ -460,7 +482,7 @@ function renderOrders() {
     else if (o.status==='preparing')
       actionBtns = `<button class="tbl-btn btn-next" onclick="advance('${o.id}','ready')">✅ Ready</button>`;
     else if (o.status==='ready' && o.type==='delivery')
-      actionBtns = `<button class="tbl-btn btn-assign-tbl" onclick="openRider('${o.id}','${o.code||''}')">🛵 Assign</button>`;
+      actionBtns = `<span style="font-size:11px;color:#a855f7;font-weight:600;">⏳ Waiting rider</span>`;
     else if (o.status==='ready')
       actionBtns = `<button class="tbl-btn btn-done-tbl" onclick="advance('${o.id}','done')">🎉 Done</button>`;
     else if (o.status==='delivering')
@@ -493,30 +515,6 @@ window.advance = async (id, status) => {
 };
 
 // ── Rider modal ──
-window.openRider = (id, code) => {
-  riderTarget = id;
-  document.getElementById('rider-modal-sub').textContent = 'Order ' + code;
-  document.getElementById('rider-name').value = '';
-  document.getElementById('rider-phone').value = '';
-  document.getElementById('rider-modal').classList.add('open');
-};
-window.closeRider = () => {
-  document.getElementById('rider-modal').classList.remove('open');
-  riderTarget = null;
-};
-window.setPreset = n => document.getElementById('rider-name').value = n;
-window.confirmRider = async () => {
-  const name  = document.getElementById('rider-name').value.trim();
-  const phone = document.getElementById('rider-phone').value.trim();
-  if (!name || !riderTarget) return;
-  try {
-    await updateDoc(doc(db,'orders',riderTarget), {
-      status:'delivering', rider:name, riderPhone:phone||null, updatedAt:serverTimestamp()
-    });
-    toast('🛵 Rider: ' + name);
-    closeRider();
-  } catch(e) { toast('❌ ' + e.message); }
-};
 
 // ── Screenshot ──
 window.openImg = url => {
@@ -565,6 +563,47 @@ function renderUsers() {
   }).join('');
 }
 window.filterUsers = q => { userSearchQ = q; renderUsers(); };
+
+let riderSearchQ = '';
+function renderRiders() {
+  let riders = [...allRiders];
+  if (riderSearchQ) {
+    const q = riderSearchQ.toLowerCase();
+    riders = riders.filter(r => (r.name||'').toLowerCase().includes(q) || (r.email||'').toLowerCase().includes(q) || (r.phone||'').includes(q));
+  }
+  const grid  = document.getElementById('riders-grid');
+  const empty = document.getElementById('riders-empty');
+  if (!grid) return;
+  if (!riders.length) { grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  grid.innerHTML = riders.map(r => {
+    const isSuspended = r.status === 'suspended';
+    const isOnline = r.isOnline;
+    return `<div class="user-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div class="user-avatar">🛵</div>
+        <div>
+          <div class="user-name">${r.name||'—'} ${isOnline?'<span style="font-size:10px;background:rgba(34,197,94,0.15);color:#22c55e;padding:2px 8px;border-radius:100px;border:1px solid rgba(34,197,94,0.3);">● Online</span>':''}</div>
+          <div class="user-email">${r.email||'—'}</div>
+        </div>
+      </div>
+      <div class="user-meta">Phone: ${r.phone||'—'}</div>
+      <div class="user-meta">Delivered: ${r.delivered||0} · Joined: ${r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-MY') : '—'}</div>
+      <button class="suspend-btn ${isSuspended?'suspended':'active'}" onclick="toggleSuspendRider('${r.id}','${r.status||'active'}')">
+        ${isSuspended ? '✅ Reinstate Rider' : '🚫 Suspend Rider'}
+      </button>
+    </div>`;
+  }).join('');
+}
+window.filterRiders = q => { riderSearchQ = q; renderRiders(); };
+window.toggleSuspendRider = async (id, currentStatus) => {
+  const newStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
+  if (!confirm(`${newStatus === 'suspended' ? 'Suspend' : 'Reinstate'} this rider?`)) return;
+  try {
+    await updateDoc(doc(db,'riders',id), { status: newStatus });
+    toast(newStatus === 'suspended' ? '🚫 Rider suspended' : '✅ Rider reinstated');
+  } catch(e) { toast('❌ ' + e.message); }
+};
 window.toggleSuspend = async (id, currentStatus) => {
   const newStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
   if (!confirm(`${newStatus === 'suspended' ? 'Suspend' : 'Reinstate'} this user?`)) return;
@@ -624,7 +663,7 @@ window.switchTab = (tab, el) => {
   activeTab = tab;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  ['orders','users','revenue'].forEach(t => {
+  ['orders','users','riders','revenue'].forEach(t => {
     document.getElementById('tab-'+t).style.display = t===tab ? 'block' : 'none';
   });
 };
