@@ -110,20 +110,6 @@
   .rev-merchant-name { font-size:13px; font-weight:600; color:#e8e8ed; }
   .rev-merchant-val { font-size:14px; font-weight:800; color:#34d399; }
 
-  /* ── Rider modal ── */
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:999; padding:20px; }
-  .modal-overlay.open { display:flex; }
-  .modal { background:#1C1C24; border-radius:24px; padding:28px; width:100%; max-width:400px; border:1px solid #2a2a36; }
-  .modal-title { font-size:18px; font-weight:800; color:#fff; margin-bottom:6px; }
-  .modal-sub { font-size:13px; color:#666; margin-bottom:20px; }
-  .modal-input { width:100%; padding:12px 14px; border:1px solid #2a2a36; border-radius:12px; font-family:'DM Sans',sans-serif; font-size:14px; outline:none; background:#12121A; color:#fff; margin-bottom:10px; }
-  .modal-input:focus { border-color:#a855f7; }
-  .rider-presets { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
-  .rider-preset { padding:7px 14px; border-radius:100px; background:rgba(168,85,247,0.15); color:#c084fc; font-size:12px; font-weight:700; cursor:pointer; border:1px solid rgba(168,85,247,0.2); font-family:'DM Sans',sans-serif; }
-  .modal-actions { display:flex; gap:10px; }
-  .modal-confirm { flex:1; padding:13px; background:#a855f7; color:#fff; border:none; border-radius:12px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:700; cursor:pointer; }
-  .modal-cancel { padding:13px 20px; background:#2a2a36; color:#888; border:none; border-radius:12px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; }
-
   /* ── Screenshot modal ── */
   .img-modal { position:fixed; inset:0; background:rgba(0,0,0,0.88); display:none; align-items:center; justify-content:center; z-index:1000; padding:20px; cursor:pointer; }
   .img-modal.open { display:flex; }
@@ -291,21 +277,6 @@
   </div>
 </div>
 
-    <div class="modal-sub" id="rider-modal-sub">Order #—</div>
-    <input class="modal-input" id="rider-name" placeholder="Rider name…">
-    <input class="modal-input" id="rider-phone" placeholder="Rider phone (optional)">
-    <div class="rider-presets">
-      <button class="rider-preset" onclick="setPreset('Ali')">Ali</button>
-      <button class="rider-preset" onclick="setPreset('Hafiz')">Hafiz</button>
-      <button class="rider-preset" onclick="setPreset('Zack')">Zack</button>
-      <button class="rider-preset" onclick="setPreset('Amin')">Amin</button>
-    </div>
-    <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeRider()">Cancel</button>
-      <button class="modal-confirm" onclick="confirmRider()">Assign & Dispatch</button>
-    </div>
-  </div>
-</div>
 
 <!-- ── Screenshot modal ── -->
 <div class="img-modal" id="img-modal" onclick="this.classList.remove('open')">
@@ -345,7 +316,6 @@ let filterMch  = 'all';
 let filterSt   = 'all';
 let searchQ    = '';
 let userSearchQ = '';
-let riderTarget = null;
 let unsubOrders = null;
 let unsubUsers  = null;
 let unsubRiders = null;
