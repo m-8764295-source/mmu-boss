@@ -151,7 +151,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-accept{background:var(--matcha);color:#fff;box-shadow:0 4px 16px rgba(122,158,90,0.3);}
 .btn-reject{background:var(--red-dim);color:var(--red);}
 .btn-ready{background:var(--matcha-dim);color:var(--matcha2);border:1px solid rgba(122,158,90,0.2);}
-.btn-assign{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(91,143,166,0.25);}
 .btn-done{background:var(--bg3);color:var(--text2);border:1px solid var(--border2);}
 
 /* ── RIDER MODAL ── */
@@ -542,18 +541,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div><!-- /layout -->
 </div><!-- /dashboard -->
 
-<!-- ── ASSIGN RIDER MODAL ── -->
-<div class="modal-overlay" id="rider-modal">
-  <div class="modal-box">
-    <div class="modal-title">🛵 Assign Rider</div>
-    <div class="modal-sub" id="modal-order-info">Order #SOD-001 • Delivery to Block A</div>
-    <div class="rider-list" id="rider-list"></div>
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
-      <button class="modal-confirm" onclick="confirmAssign()">Assign →</button>
-    </div>
-  </div>
-</div>
+<!-- Rider assignment is now handled by the merchant app -->
 
 <!-- ── ADD RIDER MODAL ── -->
 <div class="modal-overlay add-rider-modal" id="add-rider-modal">
@@ -626,8 +614,6 @@ const CREDS = {user:'boss', pass:'soyoden2024'};
 let orders  = [];
 let riders  = [];   // from Firestore riders collection
 let currentFilter  = 'all';
-let assigningDocId = null;
-let selectedRiderId = null;
 
 const menus = [
   {emoji:'🍵',name:'Matcha Soy Milk',   price:7.50,cat:'Soy Milk'},
@@ -1010,7 +996,7 @@ function actionButtons(o){
   // Accept/Prepare/Ready = merchant's job
   if(o.status==='new')        return `<div style="font-size:11px;color:var(--amber);font-family:'DM Mono',monospace;padding:6px 0;">⏳ Waiting for merchant to accept…</div>`;
   if(o.status==='preparing')  return `<div style="font-size:11px;color:var(--amber);font-family:'DM Mono',monospace;padding:6px 0;">🍳 Merchant is preparing…</div>`;
-  if(o.status==='ready'&&o.type==='delivery') return `<button class="action-btn btn-assign" onclick="openAssign('${id}','${o.name}','${o.address||''}')">🛵 Assign Rider</button>`;
+  if(o.status==='ready'&&o.type==='delivery') return `<div style="font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;padding:6px 0;">${o.rider?`🛵 Rider: ${o.rider}`:'⏳ Waiting for merchant to assign rider…'}</div>`;
   if(o.status==='ready'&&o.type==='pickup')   return `<div style="font-size:11px;color:var(--matcha2);font-family:'DM Mono',monospace;padding:6px 0;">🟢 Ready — waiting for customer pickup</div>`;
   if(o.status==='delivering') return `<div style="font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;padding:6px 0;">🛵 Out for delivery…</div>`;
   if(o.status==='done')       return `<span style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;">✅ COMPLETED</span>`;
@@ -1051,57 +1037,7 @@ function updateNewBadge(){
   nb.textContent=n; nb.style.display=n>0?'inline-flex':'none';
 }
 
-// ═══════════════════════════════════════════════════════
-//  ASSIGN RIDER
-// ═══════════════════════════════════════════════════════
-function openAssign(docId,name,address){
-  assigningDocId=docId; selectedRiderId=null;
-  document.getElementById('modal-order-info').textContent=`${name} · ${address||'Pickup'}`;
-  // Only show riders who are ACTIVE and ONLINE
-  const onlineRiders = riders.filter(r => r.status==='active' && r.isOnline===true);
-  const activeRiders = riders.filter(r => r.status==='active');
-  document.getElementById('rider-list').innerHTML = onlineRiders.length
-    ? onlineRiders.map(r=>`
-        <div class="rider-item" id="ri-${r.docId}" onclick="selectRider('${r.docId}')">
-          <div class="rider-avatar">🧑</div>
-          <div>
-            <div class="rider-name">${r.name}</div>
-            <div class="rider-info">${r.phone} · ${r.vehicle||'—'} ${r.plateNumber?'· '+r.plateNumber:''}</div>
-          </div>
-          <div class="rider-status-dot"></div>
-          <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--matcha2);">🟢 ONLINE</span>
-        </div>`).join('')
-    : activeRiders.length
-    ? `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">
-         <div style="font-size:28px;margin-bottom:8px;">🔴</div>
-         <div style="font-weight:600;color:var(--cream);margin-bottom:4px;">${activeRiders.length} rider${activeRiders.length>1?'s':''} registered but all offline</div>
-         Ask them to go Online in the Rider App first.
-       </div>`
-    : `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">No active riders.<br>Approve riders in the Riders tab first.</div>`;
-  document.getElementById('rider-modal').style.display='flex';
-}
-window.openAssign=openAssign;
-
-function selectRider(id){
-  selectedRiderId=id;
-  document.querySelectorAll('.rider-item').forEach(el=>el.classList.remove('selected'));
-  document.getElementById('ri-'+id)?.classList.add('selected');
-}
-window.selectRider=selectRider;
-
-async function confirmAssign(){
-  if(!selectedRiderId){ showToast('⚠️ Select a rider first'); return; }
-  const rider=riders.find(r=>r.docId===selectedRiderId);
-  try{
-    await updateDoc(doc(db,'orders',assigningDocId),{status:'delivering',rider:rider.name});
-    closeModal();
-    showToast(`🛵 ${rider.name} assigned!`);
-  }catch(e){ showToast('❌ '+e.message); }
-}
-window.confirmAssign=confirmAssign;
-
-function closeModal(){ document.getElementById('rider-modal').style.display='none'; assigningDocId=null; selectedRiderId=null; }
-window.closeModal=closeModal;
+// Rider assignment is now handled by the merchant app.
 
 // ═══════════════════════════════════════════════════════
 //  RIDERS PAGE — from Firebase
