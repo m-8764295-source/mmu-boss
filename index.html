@@ -378,17 +378,27 @@ onAuthStateChanged(auth, user => {
 // ── Listen ──
 function startListening() {
   // Orders
-  const oq = query(collection(db,'orders'), orderBy('timestamp','desc'));
+  const oq = query(collection(db,'orders'));
   unsubOrders = onSnapshot(oq, snap => {
     allOrders = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    allOrders.sort((a,b) => {
+      const ta = a.timestamp?.toDate ? a.timestamp.toDate() : new Date(0);
+      const tb = b.timestamp?.toDate ? b.timestamp.toDate() : new Date(0);
+      return tb - ta;
+    });
     updateOrderStats();
     renderOrders();
     renderRevenue();
   });
   // Users
-  const uq = query(collection(db,'users'), orderBy('createdAt','desc'));
+  const uq = query(collection(db,'users'));
   unsubUsers = onSnapshot(uq, snap => {
     allUsers = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    allUsers.sort((a,b) => {
+      const ta = a.createdAt ? new Date(a.createdAt) : new Date(0);
+      const tb = b.createdAt ? new Date(b.createdAt) : new Date(0);
+      return tb - ta;
+    });
     renderUsers();
   });
 }
@@ -457,7 +467,7 @@ function renderOrders() {
       actionBtns = `<button class="tbl-btn btn-done-tbl" onclick="advance('${o.id}','done')">🎉 Delivered</button>`;
 
     if (o.screenshotUrl)
-      actionBtns += ` <button class="tbl-btn btn-receipt" onclick="openImg('${o.screenshotUrl}')">🧾</button>`;
+      actionBtns += ` <button class="tbl-btn btn-receipt" data-url="${o.screenshotUrl}" onclick="openImg(this.dataset.url)">🧾</button>`;
     if (!['done','cancelled'].includes(o.status))
       actionBtns += ` <button class="tbl-btn btn-cancel" onclick="advance('${o.id}','cancelled')">✕</button>`;
 
